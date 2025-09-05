@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 #Startup - Creacion de Variables
 
+onDevelopmentBranch = True
 directory_path = "./inventories/"
 current_date = date.today()
 previous_date = current_date - timedelta(days=1)
