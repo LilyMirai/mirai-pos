@@ -35,6 +35,7 @@ jobs:
             then
               echo "Development Variable isn't set to false on a non-dev branch. Fix it!"
               exit 1 # Fail the workflow if variable is wrongly set
+            fi
           else
             echo "Development Variable hasn't been found. Skipping check"
           fi
