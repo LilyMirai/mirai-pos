@@ -1,4 +1,5 @@
-import csv, os
+from contextlib import closing
+import csv, os, pyperclip
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 from datetime import date, timedelta
@@ -7,23 +8,22 @@ from datetime import date, timedelta
 
 #Startup - Creacion de Variables
 
+onDevelopmentBranch = True
 directory_path = "./inventories/"
 current_date = date.today()
 previous_date = current_date - timedelta(days=1)
 filename = "Inventario " + str(current_date) + ".csv"
 filename_previous = "Inventario " + str(previous_date) + ".csv"
-file_exists = 0 #0 doesn't exist, 1 exists, 2 previous exists.
 shoppingCart = []
+sale = None
+
 
 def openInventoryFile():
     if os.path.exists(directory_path + filename):
-        file_exists = 1
         processInventoryFile(directory_path + filename)
     elif os.path.exists(directory_path + filename_previous):
-        file_exists = 2
         processInventoryFile(directory_path + filename_previous)
     else:
-        file_exists = 0
         print("No se encontro un archivo de inventario. Importe uno.")
         fileToProcess = filedialog.askopenfilename(
             title = "Abrir archivo de Inventario",
@@ -64,6 +64,31 @@ class Product:
     def setPrice(self, new_price):
         self.price = new_price
 
+Sales = []
+class Sale:
+    def __init__(self, products, ammount, kindOfPayment):
+        self.products = products
+        self.ammount = ammount
+        self.kindOfPayment = kindOfPayment
+    
+    def getProducts(self):
+        return self.products
+    def getAmmount(self):
+        return self.ammount
+    def getKindOfPayment(self):
+        return self.kindOfPayment
+    
+def addToSales(sale):
+    Sales.append(sale)
+
+def returnAllSales(Sales):
+    if not Sales:
+        messagebox.showinfo("Ventas", "No hay ventas registradas.")
+        return
+
+    sales_list = "\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in Sales])
+    messagebox.showinfo("Ventas Registradas", f"Ventas:\n{sales_list}")
+
 def processInventoryFile(file_path):
     with open(file_path, mode='r', encoding='utf-8-sig') as file:
         csv_reader = csv.reader(file)
@@ -84,26 +109,61 @@ def processInventoryFile(file_path):
 
 def lookUpProduct():
     barcode_to_lookup = simpledialog.askstring("Buscar Producto", "Ingrese el codigo de barras del producto:")
-    for product in Products:
-        if product.getBarcode() == barcode_to_lookup:
-            messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
-            return
-    messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
+    if barcode_to_lookup != "":
+        for product in Products:
+            if product.getBarcode() == barcode_to_lookup:
+                messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
+                return
+        messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
 
 def quickLookUpProduct(barcode):
-    for product in Products:
-        if product.getBarcode() == barcode:
-            messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
-            return
-    messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
+    if barcode != "":
+        for product in Products:
+            if product.getBarcode() == barcode:
+                messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
+                return
+        messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
 
-def emptyShoppingCart():
+def quickNameLookUp(name):
+    found_products = [product for product in Products if name.lower() in product.getName().lower()]
+    if found_products:
+        product_list = "\n".join([f"{prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for prod in found_products])
+        messagebox.showinfo("Productos Encontrados", f"Productos que coinciden con '{name}':\n{product_list}")
+    else:
+        messagebox.showwarning("No Encontrado", "No se encontraron productos que coincidan con el nombre.")
+
+def addToCartFromName(name):
+    if name != "":
+        #mostrar lista de productos que coincidan, luego dejar escoger entre coincidencias para escoger el final a añadir
+        found_products = [product for product in Products if name.lower() in product.getName().lower()]
+        if found_products:
+            product_list = "\n".join([f"{idx+1}. {prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for idx, prod in enumerate(found_products)])
+            choice = simpledialog.askstring("Seleccionar Producto", f"Productos que coinciden con '{name}':\n{product_list}\nIngrese el numero del producto a añadir al carrito:")
+            if choice and choice.isdigit() and 1 <= int(choice) <= len(found_products):
+                selected_product = found_products[int(choice)-1]
+                addToCart(selected_product)
+                messagebox.showinfo("Añadido", f"{selected_product.getName()} ha sido añadido al carrito.")
+            else:
+                messagebox.showwarning("No Valido", "Seleccion invalida.")
+
+def addToCartFromBarcode(barcode):
+    if barcode != "":
+        for product in Products:
+            if product.getBarcode() == barcode:
+                addToCart(product)
+                messagebox.showinfo("Añadido", f"{product.getName()} ha sido añadido al carrito.")
+                return
+        messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
+
+def emptyShoppingCart(shoppingCart):
     shoppingCart = []
+    return shoppingCart
 
 def addToCart(product):
     shoppingCart.append(product)
 
 def removeFromCart(product):
+    global shoppingCart
     if product in shoppingCart:
         shoppingCart.remove(product)
     else:
@@ -127,36 +187,116 @@ def buyShoppingCart():
         ammount = ammount.replace("$", "")
         ammount = ammount.replace(".", "")
         total += (int(ammount))
-    messagebox.showinfo("Total a Pagar", f"El total a pagar es: ${total:,}")
+    payment_info = f"El total a pagar es: ${total:,}"
+    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n"
+    payment = payment_info + "\n" + payment_kind_info
+    payment_method = simpledialog.askstring("Total a Pagar", payment)
+    if payment_method not in ['e', 'd', 'c', 'tr']:
+        messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Compra cancelada.")
+        return False
+    sale = Sale(shoppingCart.copy(), total, payment_method)
+    addToSales(sale)
+    addSoldCartToClipboard(sale)
+    return True
+
+def addShoppingCartToClipboard(shoppingCart):
+    #crea 2 campos de texto copiables con el formato para excel "Juego1 + Juego2 + Juego3" y "Precio Total"
+    names = " + ".join([prod.getName() for prod in shoppingCart])
+    total = 0
+    for prod in shoppingCart:
+        ammount = prod.getPrice()
+        ammount = ammount.replace("$", "")
+        ammount = ammount.replace(".", "")
+        total += (int(ammount))
+    total_string = names + '\t' + str(total)
+    pyperclip.copy(total_string)
+
+def addSoldCartToClipboard(sale):
+    #crea 3 campos de textos en clipboard con formato "Juego1 + Juego2 + Juego3 \t Metodo de Pago \t Precio Total"
+    names = " + ".join([prod.getName() for prod in sale.getProducts()])
+    total = sale.getAmmount()
+    payment_method = sale.getKindOfPayment()
+    total_string = names + '\t' + payment_method + '\t' + str(total)
+    pyperclip.copy(total_string)
+
+def defineKindOfSearch(input):
+    if input.isdigit() == False:
+        quickNameLookUp(input)
+        return True
+    elif int(input) > 5:
+        quickLookUpProduct(input)
+        return True
+    return False
+
+def closingStatement():
+    if not Sales:
+        messagebox.showinfo("Ventas", "No hay ventas registradas.")
+        return
+
+    sales_list = "\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in Sales])
+    messagebox.showinfo("Ventas Registradas", f"Ventas:\n{sales_list}")
+
+def saveInventoryFile():
+    with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(["Codigo", "Nombre", "Precio", "Inventario", "Descripcion", "SinIVA", "ConIVA", "Venta", "Final"])
+        for product in Products:
+            csv_writer.writerow([product.getBarcode(), product.getName(), product.getPrice(), product.getQuantity(), product.getDescription(), product.siniva, product.coniva, product.venta, product.final])
+
+menuString = "Seleccione una accion:\n1. Añadir producto al carrito. \n2. Ver Carrito \n3. Vaciar Carrito\n4. Comprar Carrito\n5. Ver Ventas\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
+addInstructions = "- Para buscar, ingresa un nombre o codigo de barra -"
 
 def menu():
+    global shoppingCart
     while True:
-        action = simpledialog.askstring("Menu", "Seleccione una accion:\n1. Buscar Producto\n2. Añadir producto al carrito. \n3. Ver Carrito \n4. Vaciar Carrito\n5. Comprar Carrito\n0. Salir")
-        if action == '1':
-            lookUpProduct()
-        elif action == '2':
-            barcode = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras del producto a añadir:")
-            for product in Products:
-                if product.getBarcode() == barcode:
-                    addToCart(product)
-                    messagebox.showinfo("Añadido", f"{product.getName()} ha sido añadido al carrito.")
-                    break
-            else:
-                messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
-        elif action == '3':
-            viewCart()
-        elif action == '4':
-            emptyShoppingCart()
-            messagebox.showinfo("Carrito Vaciado", "El carrito ha sido vaciado.")
-        elif action == '5':
-            buyShoppingCart()
-            substractProductsFromInventory()
-            emptyShoppingCart()
-            messagebox.showinfo("Compra Exitosa", "Gracias por su compra.")
-        elif action == '0':
+        if shoppingCart == []:
+            finalMenu = menuString + addInstructions
+            action = simpledialog.askstring("Menu", finalMenu)
+        else:
+            finalMenu = menuString + addInstructions + f"\nProductos en el carrito: {len(shoppingCart)}"
+            action = simpledialog.askstring("Menu", finalMenu)
+        
+        if action == '0': #exit
+            #ask for confirmation, go back to menu if not confirmed
+            if messagebox.askyesno("Salir sin guardar", "¿Está seguro que desea salir sin guardar?"):
+                break
+        elif action == '9': #save and exit
+            #ask for confirmation, go back to menu if not confirmed
+            if not messagebox.askyesno("Guardar y salir", "¿Está seguro que desea guardar y salir?"):
+                continue
+            closingStatement()
+            saveInventoryFile()
             break
-        elif int(action) > 5:
-            quickLookUpProduct(action)
+        elif action == '8': #just save
+            #ask for confirmation
+            if not messagebox.askyesno("Guardar", "¿Está seguro que desea guardar?"):
+                continue
+            closingStatement()
+            saveInventoryFile()
+            continue
+        elif defineKindOfSearch(action): #if the input was a search, search, then skip the rest of the loop
+            continue
+        elif action == '1':
+            search = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras o nombre del producto a añadir:")
+            if search.isdigit() == False:
+                addToCartFromName(search)
+            else:
+                addToCartFromBarcode(search)
+        elif action == '2': #Ver Carrito
+            viewCart()
+        elif action == '3': #Vaciar Carrito
+            shoppingCart = emptyShoppingCart(shoppingCart)
+            messagebox.showinfo("Carrito Vaciado", "El carrito ha sido vaciado.")
+        elif action == '4': #Comprar Carrito
+            if buyShoppingCart() != False:
+                substractProductsFromInventory()
+                shoppingCart = emptyShoppingCart(shoppingCart)
+                messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
+                sale = None
+            else:
+                continue
+        elif action == '5': #Ver Ventas
+            returnAllSales(Sales)
 
 
 
