@@ -16,15 +16,26 @@ jobs:
 
       - name: Check Variable
         run: |
-          # Example: Check if variable is present in a file
           variable=onDevelopmentBranch
           file=main.py
           
-          if grep -q "${variable}=false" $file; then
-            echo "Development Variable set to false, good job"
-          elif grep -q "${variable}=true" $file; then
-            echo "Development Variable isn't set to false on a non-dev branch. Fix it!"
-            exit 1 # Fail the workflow if variable is wrongly set
+          if grep -q "${variable}" $file; then
+            # Variable exists, check if true or false
+            # There's probably a better way to do it but fuck it we ball
+            if [ grep -q "${variable} = False" $file] || \
+               [ grep -q "${variable} = false" $file] || \
+               [ grep -q "${variable}=False" $file] || \
+               [ grep -q "${variable}=false" $file]
+            then
+              echo "Development Variable set to false, good job"
+            elif [ grep -q "${variable} = True" $file] || \
+                 [ grep -q "${variable} = true" $file] || \
+                 [ grep -q "${variable}=True" $file] || \
+                 [ grep -q "${variable}=true" $file]
+            then
+              echo "Development Variable isn't set to false on a non-dev branch. Fix it!"
+              exit 1 # Fail the workflow if variable is wrongly set
+            fi
           else
             echo "Development Variable hasn't been found. Skipping check"
           fi
