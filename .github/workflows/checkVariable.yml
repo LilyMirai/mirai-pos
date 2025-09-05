@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  init:
+  check-variable:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
