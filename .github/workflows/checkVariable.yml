@@ -1,0 +1,30 @@
+name: "Check Variable"
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-variable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check Variable
+        run: |
+          # Example: Check if variable is present in a file
+          variable=onDevelopmentBranch
+          file=main.py
+          
+          if grep -q "${variable}=false" $file; then
+            echo "Development Variable set to false, good job"
+          elif grep -q "${variable}=true" $file; then
+            echo "Development Variable isn't set to false on a non-dev branch. Fix it!"
+            exit 1 # Fail the workflow if variable is wrongly set
+          else
+            echo "Development Variable hasn't been found. Skipping check"
+          fi
