@@ -15,6 +15,7 @@ previous_date = current_date - timedelta(days=1)
 filename = "Inventario " + str(current_date) + ".csv"
 filename_previous = "Inventario " + str(previous_date) + ".csv"
 shoppingCart = []
+sale = None
 
 
 def openInventoryFile():
@@ -156,11 +157,13 @@ def addToCartFromBarcode(barcode):
 
 def emptyShoppingCart(shoppingCart):
     shoppingCart = []
+    return shoppingCart
 
 def addToCart(product):
     shoppingCart.append(product)
 
 def removeFromCart(product):
+    global shoppingCart
     if product in shoppingCart:
         shoppingCart.remove(product)
     else:
@@ -184,7 +187,17 @@ def buyShoppingCart():
         ammount = ammount.replace("$", "")
         ammount = ammount.replace(".", "")
         total += (int(ammount))
-    messagebox.showinfo("Total a Pagar", f"El total a pagar es: ${total:,}")
+    payment_info = f"El total a pagar es: ${total:,}"
+    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n"
+    payment = payment_info + "\n" + payment_kind_info
+    payment_method = simpledialog.askstring("Total a Pagar", payment)
+    if payment_method not in ['e', 'd', 'c', 'tr']:
+        messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Compra cancelada.")
+        return False
+    sale = Sale(shoppingCart.copy(), total, payment_method)
+    addToSales(sale)
+    addSoldCartToClipboard(sale)
+    return True
 
 def addShoppingCartToClipboard(shoppingCart):
     #crea 2 campos de texto copiables con el formato para excel "Juego1 + Juego2 + Juego3" y "Precio Total"
@@ -196,6 +209,14 @@ def addShoppingCartToClipboard(shoppingCart):
         ammount = ammount.replace(".", "")
         total += (int(ammount))
     total_string = names + '\t' + str(total)
+    pyperclip.copy(total_string)
+
+def addSoldCartToClipboard(sale):
+    #crea 3 campos de textos en clipboard con formato "Juego1 + Juego2 + Juego3 \t Metodo de Pago \t Precio Total"
+    names = " + ".join([prod.getName() for prod in sale.getProducts()])
+    total = sale.getAmmount()
+    payment_method = sale.getKindOfPayment()
+    total_string = names + '\t' + payment_method + '\t' + str(total)
     pyperclip.copy(total_string)
 
 def defineKindOfSearch(input):
@@ -222,15 +243,11 @@ def saveInventoryFile():
         for product in Products:
             csv_writer.writerow([product.getBarcode(), product.getName(), product.getPrice(), product.getQuantity(), product.getDescription(), product.siniva, product.coniva, product.venta, product.final])
 
-menuString = "Seleccione una accion:\n1. Añadir producto al carrito. \n2. Ver Carrito \n3. Vaciar Carrito\n4. Comprar Carrito\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
+menuString = "Seleccione una accion:\n1. Añadir producto al carrito. \n2. Ver Carrito \n3. Vaciar Carrito\n4. Comprar Carrito\n5. Ver Ventas\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
 addInstructions = "- Para buscar, ingresa un nombre o codigo de barra -"
 
-
-def modifyInventoryMenu():
-    inventoryMenuString = "Seleccione una accion:\n1. Cambiar stock inventario.\n2. Revisar productos con stock negativo.\n3."
-
-
 def menu():
+    global shoppingCart
     while True:
         if shoppingCart == []:
             finalMenu = menuString + addInstructions
@@ -268,14 +285,18 @@ def menu():
         elif action == '2': #Ver Carrito
             viewCart()
         elif action == '3': #Vaciar Carrito
-            emptyShoppingCart(shoppingCart)
+            shoppingCart = emptyShoppingCart(shoppingCart)
             messagebox.showinfo("Carrito Vaciado", "El carrito ha sido vaciado.")
         elif action == '4': #Comprar Carrito
-            buyShoppingCart()
-            substractProductsFromInventory()
-            addShoppingCartToClipboard(shoppingCart)
-            emptyShoppingCart(shoppingCart)
-            messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
+            if buyShoppingCart() != False:
+                substractProductsFromInventory()
+                shoppingCart = emptyShoppingCart(shoppingCart)
+                messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
+                sale = None
+            else:
+                continue
+        elif action == '5': #Ver Ventas
+            returnAllSales(Sales)
 
 
 
