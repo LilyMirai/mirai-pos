@@ -17,7 +17,8 @@ filename = "Inventario " + str(current_date) + ".csv"
 filename_previous = "Inventario " + str(previous_date) + ".csv"
 shoppingCart = []
 sale = None
-
+sales_path = "./sales/"
+sales_filename = "Ventas " + str(current_date) + ".csv"
 
 def openInventoryFile():
     if os.path.exists(directory_path + filename):
@@ -31,6 +32,33 @@ def openInventoryFile():
             filetypes = [("CSV files", "*.csv"), ("All files", "*.*")]
         )
         processInventoryFile(fileToProcess)
+
+def openSalesFile():
+    if os.path.exists(sales_path + sales_filename):
+        processSalesFile(sales_path + sales_filename)
+        return
+    else:
+        with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as file:
+            file.write("Venta, Productos, Metodo de Pago, Monto\n")
+        return
+
+def processSalesFile(file_path):
+    with open(file_path, mode='r', encoding='utf-8-sig') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)  # Skip header row if present
+        for row in csv_reader:
+            products_names = row[1].strip().split(" + ")
+            products = []
+            for name in products_names:
+                for prod in Products:
+                    if prod.getName() == name:
+                        products.append(prod)
+                        break
+            ammount = int(row[3].strip())
+            kindOfPayment = row[2].strip()
+            saleToAdd = Sale(products, ammount, kindOfPayment)
+            Sales.append(saleToAdd)
+
 
 Products = []
 class Product:
@@ -224,12 +252,18 @@ def buyShoppingCart():
         ammount = ammount.replace(".", "")
         total += (int(ammount))
     payment_info = f"El total a pagar es: ${total:,}"
-    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n"
+    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n\n0. Cancelar compra\n"
     payment = payment_info + "\n" + payment_kind_info
-    payment_method = simpledialog.askstring("Total a Pagar", payment)
-    if payment_method not in ['e', 'd', 'c', 'tr']:
-        messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Compra cancelada.")
-        return False
+    payment_done = False
+    while not payment_done:
+        payment_method = simpledialog.askstring("Total a Pagar", payment)
+        if payment_method == '0':
+            return False
+        if payment_method not in ['e', 'd', 'c', 'tr']:
+            messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Ingrese metodo valido.")
+            payment_done = False
+        else:
+            payment_done = True
     sale = Sale(shoppingCart.copy(), total, payment_method)
     addToSales(sale)
     addSoldCartToClipboard(sale)
@@ -275,37 +309,12 @@ def saveSalesFile():
     #create a file called "Ventas {current_date}.csv" in the inventories folder with the following format:
     #venta, producto1 + producto2 + ..., metodo de pago, monto
     sales_filename = "Ventas " + str(current_date) + ".csv"
-    with open(directory_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as file:
+    with open(sales_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(["Venta", "Productos", "Metodo de Pago", "Monto"])
         for idx, sale in enumerate(Sales):
             products = " + ".join([prod.getName() for prod in sale.getProducts()])
             csv_writer.writerow([idx+1, products, sale.getKindOfPayment(), sale.getAmmount()])
-
-def loadSalesFile():
-    #if theres a file with "Ventas {current_date}.csv" in the sales folder, load it into Sales
-    sales_filename = "Ventas " + str(current_date) + ".csv"
-    sales_path = "./sales/"
-    try:
-        if os.path.exists(sales_path + sales_filename):
-            with open(sales_path + sales_filename, mode='r', encoding='utf-8-sig') as file:
-                csv_reader = csv.reader(file)
-                next(csv_reader)  # Skip header row if present
-                for row in csv_reader:
-                    products_names = row[1].strip().split(" + ")
-                    products = []
-                    for name in products_names:
-                        for prod in Products:
-                            if prod.getName() == name:
-                                products.append(prod)
-                                break
-                    ammount = int(row[3].strip())
-                    kindOfPayment = row[2].strip()
-                    saleToAdd = Sale(products, ammount, kindOfPayment)
-                    Sales.append(saleToAdd)
-            print("Archivo de ventas cargado exitosamente.")
-    except Exception as e:
-        pass
 
 def closingStatement():
     if not Sales:
@@ -391,7 +400,7 @@ def menu():
 
 
 openInventoryFile()
-loadSalesFile()
+openSalesFile()
 menu()
 
 
