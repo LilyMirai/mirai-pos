@@ -210,6 +210,11 @@ def viewCart():
     cart_contents = "\n".join([f"{prod.getName()} - {prod.getPrice()}" for prod in shoppingCart])
     messagebox.showinfo("Carrito de Compras", f"Productos en el carrito:\n{cart_contents}")
 
+def transformPriceToInt(price):
+    ammount = price.replace("$", "")
+    ammount = ammount.replace(".", "")
+    return int(ammount)
+
 def buyShoppingCart():
     total = 0
     for prod in shoppingCart:
@@ -276,17 +281,19 @@ def saveInventoryFile():
 menuString = "Seleccione una accion:\n\n1. Añadir producto al carrito. \n2. Ver Carrito \n3. Vaciar Carrito\n4. Comprar Carrito\n\n5. Ver Ventas\n\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
+
+
 def menu():
     global shoppingCart
     while True:
 
-        if shoppingCart == []: #shows menu without cart size
+        if shoppingCart == []: #menu when cart is empty
             finalMenu = menuString + addInstructions
             action = simpledialog.askstring("Menu", finalMenu)
-        else: #shows menu with cart size
-            #show products and prices in carrito instead of just the size
+        else: #menu when cart has items, shows cart contents, price and total in a separate line at the end
             cart_contents = "\n".join([f"{prod.getName()} - {prod.getPrice()}" for prod in shoppingCart])
-            finalMenu = menuString + addInstructions + f"\nProductos en el carrito:\n{cart_contents}"
+            total_price = sum([transformPriceToInt(prod.getPrice()) for prod in shoppingCart])
+            finalMenu = menuString + addInstructions + f"\nCarrito:\n\n{cart_contents}\n\nPrecio Total: {total_price}"
             action = simpledialog.askstring("Menu", finalMenu)
         
         if action == '':
