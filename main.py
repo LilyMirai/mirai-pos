@@ -38,8 +38,8 @@ def openSalesFile():
         processSalesFile(sales_path + sales_filename)
         return
     else:
-        with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as file:
-            file.write("Venta, Productos, Metodo de Pago, Monto\n")
+        with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as salesfile:
+            salesfile.write("Venta, Productos, Metodo de Pago, Monto\n")
         return
 
 def processSalesFile(file_path):
@@ -309,8 +309,8 @@ def saveSalesFile():
     #create a file called "Ventas {current_date}.csv" in the inventories folder with the following format:
     #venta, producto1 + producto2 + ..., metodo de pago, monto
     sales_filename = "Ventas " + str(current_date) + ".csv"
-    with open(sales_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as file:
-        csv_writer = csv.writer(file)
+    with open(sales_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as salesfile:
+        csv_writer = csv.writer(salesfile)
         csv_writer.writerow(["Venta", "Productos", "Metodo de Pago", "Monto"])
         for idx, sale in enumerate(Sales):
             products = " + ".join([prod.getName() for prod in sale.getProducts()])
