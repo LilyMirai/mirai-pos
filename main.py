@@ -1,4 +1,5 @@
 from contextlib import closing
+from json import load
 import csv, os, pyperclip
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
@@ -16,7 +17,8 @@ filename = "Inventario " + str(current_date) + ".csv"
 filename_previous = "Inventario " + str(previous_date) + ".csv"
 shoppingCart = []
 sale = None
-
+sales_path = "./sales/"
+sales_filename = "Ventas " + str(current_date) + ".csv"
 
 def openInventoryFile():
     if os.path.exists(directory_path + filename):
@@ -30,6 +32,33 @@ def openInventoryFile():
             filetypes = [("CSV files", "*.csv"), ("All files", "*.*")]
         )
         processInventoryFile(fileToProcess)
+
+def openSalesFile():
+    if os.path.exists(sales_path + sales_filename):
+        processSalesFile(sales_path + sales_filename)
+        return
+    else:
+        with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as file:
+            file.write("Venta, Productos, Metodo de Pago, Monto\n")
+        return
+
+def processSalesFile(file_path):
+    with open(file_path, mode='r', encoding='utf-8-sig') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)  # Skip header row if present
+        for row in csv_reader:
+            products_names = row[1].strip().split(" + ")
+            products = []
+            for name in products_names:
+                for prod in Products:
+                    if prod.getName() == name:
+                        products.append(prod)
+                        break
+            ammount = int(row[3].strip())
+            kindOfPayment = row[2].strip()
+            saleToAdd = Sale(products, ammount, kindOfPayment)
+            Sales.append(saleToAdd)
+
 
 Products = []
 class Product:
@@ -223,12 +252,18 @@ def buyShoppingCart():
         ammount = ammount.replace(".", "")
         total += (int(ammount))
     payment_info = f"El total a pagar es: ${total:,}"
-    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n"
+    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n\n0. Cancelar compra\n"
     payment = payment_info + "\n" + payment_kind_info
-    payment_method = simpledialog.askstring("Total a Pagar", payment)
-    if payment_method not in ['e', 'd', 'c', 'tr']:
-        messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Compra cancelada.")
-        return False
+    payment_done = False
+    while not payment_done:
+        payment_method = simpledialog.askstring("Total a Pagar", payment)
+        if payment_method == '0':
+            return False
+        if payment_method not in ['e', 'd', 'c', 'tr']:
+            messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Ingrese metodo valido.")
+            payment_done = False
+        else:
+            payment_done = True
     sale = Sale(shoppingCart.copy(), total, payment_method)
     addToSales(sale)
     addSoldCartToClipboard(sale)
@@ -270,6 +305,17 @@ def defineKindOfSearch(input):
         return True
     return False
 
+def saveSalesFile():
+    #create a file called "Ventas {current_date}.csv" in the inventories folder with the following format:
+    #venta, producto1 + producto2 + ..., metodo de pago, monto
+    sales_filename = "Ventas " + str(current_date) + ".csv"
+    with open(sales_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(["Venta", "Productos", "Metodo de Pago", "Monto"])
+        for idx, sale in enumerate(Sales):
+            products = " + ".join([prod.getName() for prod in sale.getProducts()])
+            csv_writer.writerow([idx+1, products, sale.getKindOfPayment(), sale.getAmmount()])
+
 def closingStatement():
     if not Sales:
         messagebox.showinfo("Ventas", "No hay ventas registradas.")
@@ -303,7 +349,7 @@ def menu():
             finalMenu = menuString + addInstructions + f"\nCarrito:\n\n{cart_contents}\n\nPrecio Total: {total_price}"
             action = simpledialog.askstring("Menu", finalMenu)
         
-        if action == '':
+        if action == '': #if empty, loop
             continue
         elif action == '0': #exit
             #ask for confirmation, go back to menu if not confirmed
@@ -322,8 +368,6 @@ def menu():
                 continue
             closingStatement()
             saveInventoryFile()
-            continue
-        elif defineKindOfSearch(action): #if the input was a search, search, then skip the rest of the loop
             continue
         elif action == '1':
             search = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras o nombre del producto a añadir:")
@@ -344,15 +388,19 @@ def menu():
                 shoppingCart = emptyShoppingCart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
                 saveInventoryFile()
+                saveSalesFile()
                 sale = None
             else:
                 continue
         elif action == '6': #Ver Ventas
             returnAllSales(Sales)
+        elif defineKindOfSearch(action): #if the input was a search, search, then skip the rest of the loop
+            continue
 
 
 
 openInventoryFile()
+openSalesFile()
 menu()
 
 
