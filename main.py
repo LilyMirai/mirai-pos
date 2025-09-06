@@ -234,6 +234,13 @@ def buyShoppingCart():
     addSoldCartToClipboard(sale)
     return True
 
+def addCustomProductToCart():
+    name = simpledialog.askstring("Nombre del Producto", "Ingrese el nombre del producto:", initialvalue="Cartas Sueltas")
+    price = simpledialog.askstring("Precio del Producto", "Ingrese el precio del producto:", initialvalue="$1000")
+    if name and price:
+        product = Product('', name, price, 1, "Producto Personalizado", "", "", "", "")
+        addToCart(product)
+
 def addShoppingCartToClipboard(shoppingCart):
     #crea 2 campos de texto copiables con el formato para excel "Juego1 + Juego2 + Juego3" y "Precio Total"
     names = " + ".join([prod.getName() for prod in shoppingCart])
@@ -278,7 +285,7 @@ def saveInventoryFile():
         for product in Products:
             csv_writer.writerow([product.getBarcode(), product.getName(), product.getPrice(), product.getQuantity(), product.getDescription(), product.siniva, product.coniva, product.venta, product.final])
 
-menuString = "Seleccione una accion:\n\n1. Añadir producto al carrito. \n2. Ver Carrito \n3. Vaciar Carrito\n4. Comprar Carrito\n\n5. Ver Ventas\n\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
+menuString = "Seleccione una accion:\n\n1. Añadir producto al carrito. \n2. Añadir producto personalizado al carrito.\n3. Ver Carrito \n4. Vaciar Carrito\n5. Comprar Carrito\n\n6. Ver Ventas\n\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
 
@@ -324,12 +331,14 @@ def menu():
                 nameSearch(search, 2)
             else:
                 addToCartFromBarcode(search)
-        elif action == '2': #Ver Carrito
+        elif action == '2': #Add Custom Product
+            addCustomProductToCart()
+        elif action == '3': #Ver Carrito
             viewCart()
-        elif action == '3': #Vaciar Carrito
+        elif action == '4': #Vaciar Carrito
             shoppingCart = emptyShoppingCart(shoppingCart)
             messagebox.showinfo("Carrito Vaciado", "El carrito ha sido vaciado.")
-        elif action == '4': #Comprar Carrito
+        elif action == '5': #Comprar Carrito
             if buyShoppingCart() != False:
                 substractProductsFromInventory()
                 shoppingCart = emptyShoppingCart(shoppingCart)
@@ -338,7 +347,7 @@ def menu():
                 sale = None
             else:
                 continue
-        elif action == '5': #Ver Ventas
+        elif action == '6': #Ver Ventas
             returnAllSales(Sales)
 
 
