@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 from datetime import date, timedelta
 from Inventory import *
-from Sales import return_sales
+from Sales import buy_shopping_cart, return_sales, save_sales_file
 
 #orden csv entrante: codigo, nombre, precio, inventario, descripcion, siniva, coniva, venta, final
  
@@ -224,31 +224,6 @@ def transformPriceToInt(price):
     ammount = ammount.replace(".", "")
     return int(ammount)
 
-def buyShoppingCart():
-    total = 0
-    for prod in shoppingCart:
-        ammount = prod.getPrice()
-        ammount = ammount.replace("$", "")
-        ammount = ammount.replace(".", "")
-        total += (int(ammount))
-    payment_info = f"El total a pagar es: ${total:,}"
-    payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n\n0. Cancelar compra\n"
-    payment = payment_info + "\n" + payment_kind_info
-    payment_done = False
-    while not payment_done:
-        payment_method = simpledialog.askstring("Total a Pagar", payment)
-        if payment_method == '0':
-            return False
-        if payment_method not in ['e', 'd', 'c', 'tr']:
-            messagebox.showwarning("Metodo Invalido", "Metodo de pago invalido. Ingrese metodo valido.")
-            payment_done = False
-        else:
-            payment_done = True
-    sale = Sale(shoppingCart.copy(), total, payment_method)
-    addToSales(sale)
-    addSoldCartToClipboard(sale)
-    return True
-
 def addCustomProductToCart():
     name = simpledialog.askstring("Nombre del Producto", "Ingrese el nombre del producto:", initialvalue="Cartas Sueltas")
     price = simpledialog.askstring("Precio del Producto", "Ingrese el precio del producto:", initialvalue="$1000")
@@ -256,26 +231,6 @@ def addCustomProductToCart():
         return
     product = Product('', name, price, 1, "Producto Personalizado", "", "", "", "")
     addToCart(product)
-
-def addShoppingCartToClipboard(shoppingCart):
-    #crea 2 campos de texto copiables con el formato para excel "Juego1 + Juego2 + Juego3" y "Precio Total"
-    names = " + ".join([prod.getName() for prod in shoppingCart])
-    total = 0
-    for prod in shoppingCart:
-        ammount = prod.getPrice()
-        ammount = ammount.replace("$", "")
-        ammount = ammount.replace(".", "")
-        total += (int(ammount))
-    total_string = names + '\t' + str(total)
-    pyperclip.copy(total_string)
-
-def addSoldCartToClipboard(sale):
-    #crea 3 campos de textos en clipboard con formato "Juego1 + Juego2 + Juego3 \t Metodo de Pago \t Precio Total"
-    names = " + ".join([prod.getName() for prod in sale.getProducts()])
-    total = sale.getAmmount()
-    payment_method = sale.getKindOfPayment()
-    total_string = names + '\t' + payment_method + '\t' + str(total)
-    pyperclip.copy(total_string)
 
 def defineKindOfSearch(input):
     if input is None or input == '':
@@ -287,17 +242,6 @@ def defineKindOfSearch(input):
         quickLookUpProduct(input)
         return True
     return False
-
-def saveSalesFile():
-    #create a file called "Ventas {current_date}.csv" in the inventories folder with the following format:
-    #venta, producto1 + producto2 + ..., metodo de pago, monto
-    sales_filename = "Ventas " + str(current_date) + ".csv"
-    with open(sales_path + sales_filename, mode='w', newline='', encoding='utf-8-sig') as salesfile:
-        csv_writer = csv.writer(salesfile)
-        csv_writer.writerow(["Venta", "Productos", "Metodo de Pago", "Monto"])
-        for idx, sale in enumerate(Sales):
-            products = " + ".join([prod.getName() for prod in sale.getProducts()])
-            csv_writer.writerow([idx+1, products, sale.getKindOfPayment(), sale.getAmmount()])
 
 def closingStatement():
     if not Sales:
@@ -314,7 +258,7 @@ addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
 def save():
     save_inventory()
-    saveSalesFile()
+    save_sales_file()
 
 
 def menu():
@@ -370,12 +314,12 @@ def menu():
             messagebox.showinfo("Carrito Vaciado", "El carrito ha sido vaciado.")
 
         elif action == '5': #Comprar Carrito
-            if buyShoppingCart() != False:
+            if buy_shopping_cart(shoppingCart) != False:
                 substractProductsFromInventory()
                 shoppingCart = emptyShoppingCart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
                 save_inventory()
-                saveSalesFile()
+                save_sales_file()
                 sale = None
             else:
                 continue
