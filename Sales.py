@@ -56,6 +56,10 @@ def load_sales_file():
     if os.path.exists(sales_directory_path + sales_filename):
         return process_sales_file(sales_directory_path + sales_filename)
     else:
+        # if sales directory doesn't exists, create it before creating the file
+        if not os.path.exists(sales_directory_path):
+            os.mkdir(sales_directory_path)
+
         with open(sales_directory_path + sales_filename, mode='x', newline='', encoding='utf-8') as salesfile:
             salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
         return process_sales_file(sales_directory_path + sales_filename)
