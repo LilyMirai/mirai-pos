@@ -78,7 +78,11 @@ def processInventoryFile(filePath):
     return inventory
 
 def save_inventory(inventory):
-    with open(directory_path + filename, mode='w+', newline='', encoding='utf-8') as file:
+    # Check if inventory directory exists before saving the file
+    if not os.path.exists(directory_path):
+        os.mkdir(directory_path)
+
+    with open(directory_path + filename, mode='w', newline='', encoding='utf-8') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(fieldnames)  # Write header
         for product in inventory:
