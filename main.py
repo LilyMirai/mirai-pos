@@ -2,6 +2,8 @@ import csv, os, pyperclip
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 from datetime import date, timedelta
+from Inventory import *
+from Sales import return_sales
 
 #orden csv entrante: codigo, nombre, precio, inventario, descripcion, siniva, coniva, venta, final
  
@@ -17,37 +19,6 @@ sales_filename = "Ventas " + str(current_date) + ".csv"
 
 shoppingCart = []
 sale = None
-
-def openInventoryFile():
-    if os.path.exists(directory_path + filename):
-        processInventoryFile(directory_path + filename)
-    elif os.path.exists(directory_path + filename_previous):
-        processInventoryFile(directory_path + filename_previous)
-    else:
-        print("No se encontro un archivo de inventario. Importe uno.")
-        fileToProcess = filedialog.askopenfilename(
-            title = "Abrir archivo de Inventario",
-            filetypes = [("CSV files", "*.csv"), ("All files", "*.*")]
-        )
-        processInventoryFile(fileToProcess)
-
-def processInventoryFile(file_path):
-    with open(file_path, mode='r', encoding='utf-8-sig') as file:
-        csv_reader = csv.reader(file)
-        next(csv_reader)  # Skip header row if present
-        for row in csv_reader:
-            barcode = row[0].strip()
-            name = row[1].strip()
-            price = row[2].strip()
-            quantity = int(row[3].strip())
-            description = row[4].strip()
-            siniva = row[5].strip()
-            coniva = row[6].strip()
-            venta = row[7].strip()
-            final = row[8].strip()
-            productToAdd = Product(barcode, name, price, quantity, description, siniva, coniva, venta, final)
-            Products.append(productToAdd)
-    print("Archivo de inventario procesado exitosamente.")
 
 def openSalesFile():
     if os.path.exists(sales_path + sales_filename):
@@ -76,7 +47,7 @@ def processSalesFile(file_path):
             Sales.append(saleToAdd)
 
 
-Products = []
+Products = []  #Added to inventory.py
 class Product:
     def __init__(self, barcode, name, price, quantity, description, siniva, coniva, venta, final):
         self.barcode = barcode
@@ -125,20 +96,6 @@ class Sale:
     
 def addToSales(sale):
     Sales.append(sale)
-
-def returnAllSales(Sales):
-    #returns a size-editable messagebox with all sales with the following format:
-    # Numero Venta - Producto1 + Producto2 + ... - Metodo de Pago - Monto
-    # enumerar ventas junto a "Venta 1: Producto1 + Producto2 + ... - Metodo de Pago - Monto"
-    #no incluir titulos, solo los resultados
-    if not Sales:
-        messagebox.showinfo("Ventas", "No hay ventas registradas.")
-        return
-    totalVentas = 0
-    for venta in Sales:
-        totalVentas += venta.getAmmount()
-    sales_list = "\n\n".join([f"{idx+1}: {', '.join([prod.getName() for prod in sale.getProducts()])} - {sale.getKindOfPayment()} - {sale.getAmmount()}" for idx, sale in enumerate(Sales)])
-    messagebox.showinfo("Ventas Registradas", f"Ventas:\n\n{sales_list}\n\nTotal: {totalVentas}")
 
 def lookUpProduct():
     barcode_to_lookup = simpledialog.askstring("Buscar Producto", "Ingrese el codigo de barras del producto:")
@@ -352,18 +309,11 @@ def closingStatement():
     sales_list = "\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in Sales])
     messagebox.showinfo("Ventas Registradas", f"Ventas:\n{sales_list}\n\nTotal: {ventasTotales}")
 
-def saveInventoryFile():
-    with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as file:
-        csv_writer = csv.writer(file)
-        csv_writer.writerow(["Codigo", "Nombre", "Precio", "Inventario", "Descripcion", "SinIVA", "ConIVA", "Venta", "Final"])
-        for product in Products:
-            csv_writer.writerow([product.getBarcode(), product.getName(), product.getPrice(), product.getQuantity(), product.getDescription(), product.siniva, product.coniva, product.venta, product.final])
-
 menuString = "Seleccione una accion:\n\n1. Añadir producto al carrito. \n2. Añadir producto personalizado al carrito.\n\n3. Ver Carrito \n4. Vaciar Carrito\n5. Comprar Carrito\n\n6. Ver Ventas\n\n8. Guardar\n9. Guardar y salir\n0. Salir sin guardar\n"
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
 def save():
-    saveInventoryFile()
+    save_inventory()
     saveSalesFile()
 
 
@@ -424,21 +374,21 @@ def menu():
                 substractProductsFromInventory()
                 shoppingCart = emptyShoppingCart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
-                saveInventoryFile()
+                save_inventory()
                 saveSalesFile()
                 sale = None
             else:
                 continue
 
         elif action == '6': #Ver Ventas
-            returnAllSales(Sales)
+            return_sales(Sales)
 
         elif defineKindOfSearch(action): #if the input was a search, search, then skip the rest of the loop
             continue
 
 
 
-openInventoryFile()
+load_inventory()
 openSalesFile()
 save()
 menu()
