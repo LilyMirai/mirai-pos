@@ -33,8 +33,14 @@ payment_window_title = "Total a Pagar"
 
 
 class Sale:
-    def __init__(self, product_name, price, kindOfPayment, time_of_sale = datetime.now().strftime("%H:%M:%S")):
-        self.product_name = product_name
+    def __init__(self, products, price, kindOfPayment, time_of_sale = datetime.now().strftime("%H:%M:%S")):
+        # Handle both list of products and string of product names
+        if isinstance(products, list):
+            self.products = products
+            self.product_name = " + ".join([product.getName() for product in products])
+        else:
+            self.product_name = products
+            self.products = []  # Empty list when products is a string
         self.price = price
         self.kindOfPayment = kindOfPayment
         self.time_of_sale = time_of_sale
@@ -48,7 +54,7 @@ class Sale:
     def getTimeOfSale(self):
         return self.time_of_sale
     def getProducts(self):
-        return self.product_name
+        return self.products
     
 
 #Load sale file into memory.
@@ -70,20 +76,16 @@ def process_sales_file(file_path, sales):
         csv_reader = csv.reader(file)
         next(csv_reader)  # Skip header row if present
         for row in csv_reader:
-            products_names = row[0].strip().split(" + ")
-            products = []
-            for name in products_names:
-                for prod in inventory:
-                    if prod.getName() == name:
-                        products.append(prod)
-                        break
-            ammount = int(row[1].strip())
+            if len(row) < 3:  # Skip incomplete rows
+                continue
+            product_name = row[0].strip()
+            price = float(row[1].strip())
             kindOfPayment = row[2].strip()
             try:
-                time_of_sale = row[3].strip()
+                time_of_sale = row[3].strip() if len(row) > 3 else datetime.now().strftime("%H:%M:%S")
             except IndexError:
-                time_of_sale = None
-            saleToAdd = Sale(products, ammount, kindOfPayment, time_of_sale)
+                time_of_sale = datetime.now().strftime("%H:%M:%S")
+            saleToAdd = Sale(product_name, price, kindOfPayment, time_of_sale)
             sales.append(saleToAdd)
         return sales
 
@@ -111,7 +113,11 @@ def save_sales_file(sales):
 
 #Copies the names, prices and method of pay to the clipboard to pase onto another spreadsheet software.
 def sold_cart_to_clipboard(sale):
-    names = " + ".join([product.getName() for product in sale.getProducts()])
+    # Use product name string if products list is empty
+    if sale.getProducts():
+        names = " + ".join([product.getName() for product in sale.getProducts()])
+    else:
+        names = sale.getProductName()
     total = sale.getPrice()
     payment_method = sale.getKindOfPayment()
     clipboard_text = names + "\t" + payment_method + "\t" + str(total)
@@ -134,7 +140,8 @@ def buy_shopping_cart(shoppingCart, sales):
         else:
             payment_done = True
     sale_name = " + ".join([product.getName() for product in shoppingCart])
-    sale = Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
+    print(sale_name)
+    sale = Sale(shoppingCart, total, payment_method, datetime.now().strftime("%H:%M:%S"))
     sales = add_to_sales(sale, sales)
     sold_cart_to_clipboard(sale)
     return sales

@@ -76,8 +76,9 @@ def menu():
             shoppingCart = empty_shopping_cart(shoppingCart)
 
         elif action == '5': #Comprar Carrito
-            sales = buy_shopping_cart(shoppingCart, sales)
-            if sales != None:
+            result = buy_shopping_cart(shoppingCart, sales)
+            if result != False:
+                sales = result
                 substract_sale_from_inventory(shoppingCart)
                 shoppingCart = empty_shopping_cart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")

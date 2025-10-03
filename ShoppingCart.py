@@ -1,6 +1,7 @@
 from tkinter import messagebox, simpledialog
 from Inventory import *
 import Sales
+from datetime import *
 
 def empty_shopping_cart(shoppingCart):
     shoppingCart = []
@@ -24,7 +25,7 @@ def add_custom_product_to_cart(shoppingCart):
     price = simpledialog.askstring("Producto Personalizado", "Ingrese el precio del producto:", initialvalue="$1000")
     if name is None or name == '' or price is None or price == '':
         return
-    product = Product('', name, price, 1, "Producto Personalizado", "", "", "", "")
+    product = Product('', '', name, price, 1, '')
     shoppingCart = add_to_cart(product, shoppingCart)
     return shoppingCart
 
@@ -52,7 +53,8 @@ def buy_shopping_cart(shopping_cart, sales):
             payment_done = False
         else:
             payment_done = True
-    sale = Sales.Sale(shopping_cart.copy(), total, payment_method)
+    sale_name = " + ".join([product.getName() for product in shopping_cart])
+    sale = Sales.Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
     sales = Sales.add_to_sales(sale, sales)
     Sales.sold_cart_to_clipboard(sale)
     print(sales)
