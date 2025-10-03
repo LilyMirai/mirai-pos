@@ -1,7 +1,7 @@
 from math import prod
 from Inventory import *
 from tkinter import messagebox
-from datetime import date, time 
+from datetime import * 
 import pyperclip
 
 #Title for window showing all sales.
@@ -29,8 +29,9 @@ payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Cr
 payment_window_title = "Total a Pagar"    
 
 
+
 class Sale:
-    def __init__(self, product_name, ammount, kindOfPayment, time_of_sale = time.strftime("%H:%M:%S")):
+    def __init__(self, product_name, ammount, kindOfPayment, time_of_sale = datetime.now().strftime("%H:%M:%S")):
         self.product_name = product_name
         self.ammount = ammount
         self.kindOfPayment = kindOfPayment

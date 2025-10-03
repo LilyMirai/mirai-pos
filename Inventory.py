@@ -12,8 +12,8 @@ message_loaded_inventory = "Inventario cargado exitosamente."
 
 class Product:
     def __init__(self, product_id, barcode, name, price, quantity, cost):
-        self.product_id = product_id
-        self.barcode = barcode
+        self.product_id = product_id #WooCommerce or other store front ID.
+        self.barcode = barcode #SKU
         self.name = name
         self.price = price
         self.quantity = quantity
@@ -47,9 +47,9 @@ def processInventoryFile(filePath):
             product_id = row[0].strip()
             barcode = row[1].strip()
             name = row[2].strip()
-            price = float(row[3].strip())
+            price = row[3].strip()
             quantity = int(row[4].strip())
-            cost = float(row[5].strip())
+            cost = row[5].strip()
             product = Product(product_id, barcode, name, price, quantity, cost)
             inventory.append(product)
     print(message_loaded_inventory)
