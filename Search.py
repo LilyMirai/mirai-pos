@@ -49,9 +49,8 @@ def search_product(search_term):
                 messagebox.showerror(window_title_search, "Producto no encontrado.")
                 return None
 
-
 def quick_add_to_cart_by_name(search_term):
-    MAX_ELEMENTS_PAGE = 40;
+    MAX_ELEMENTS_PAGE = 40
     if search_term is None or search_term == "":
         return None
     found_products = search_by_name(search_term)
