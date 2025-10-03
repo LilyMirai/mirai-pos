@@ -28,11 +28,11 @@ menuString = '''Seleccione una accion:
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
 def save():
-    save_inventory()
-    save_sales_file()
+    save_inventory(inventory)
+    save_sales_file(sales)
 
 def menu():
-    global shoppingCart
+    global shoppingCart, sales, inventory
     while True:
 
         if shoppingCart == []: #menu when cart is empty
@@ -63,7 +63,7 @@ def menu():
             continue
 
         elif action == '1':
-            search_term = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras o nombre del producto a añadir:")
+            search_term = look_up_menu()
             shoppingCart = add_to_cart(search(search_term), shoppingCart)
 
         elif action == '2': #Add Custom Product
@@ -76,12 +76,12 @@ def menu():
             shoppingCart = empty_shopping_cart(shoppingCart)
 
         elif action == '5': #Comprar Carrito
-            if buy_shopping_cart(shoppingCart) != False:
+            if buy_shopping_cart(shoppingCart, sales) != False:
                 substract_sale_from_inventory(shoppingCart)
                 shoppingCart = empty_shopping_cart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
-                save_inventory()
-                save_sales_file()
+                inventory = save_inventory(inventory)
+                sales = save_sales_file(sales)
                 sale = None
             else:
                 continue
@@ -93,8 +93,8 @@ def menu():
             shoppingCart = add_to_cart(search(action), shoppingCart)
             continue
 
-load_inventory()
-load_sales_file()
+inventory = load_inventory()
+sales = load_sales_file()
 save()
 menu()
 

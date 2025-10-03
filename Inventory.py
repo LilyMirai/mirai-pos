@@ -50,16 +50,17 @@ fieldnames = ['ID', 'Barcode', 'Name', 'Price', 'Quantity', 'Cost']
 
 def load_inventory():
     if os.path.exists(directory_path + filename):
-        processInventoryFile(directory_path + filename)
+        inventory = processInventoryFile(directory_path + filename)
     elif os.path.exists(directory_path + previous_filename):
-        processInventoryFile(directory_path + previous_filename)
+        inventory = processInventoryFile(directory_path + previous_filename)
     else:
         print(error_no_inventory)
         fileToProcess = filedialog.askopenfilename(
             title = open_inventory_file_dialog,
             filetypes = [("CSV Files", "*.csv"), ("All Files", "*.*")]
         )
-        processInventoryFile(fileToProcess)
+        inventory = processInventoryFile(fileToProcess)
+    return inventory
     
 def processInventoryFile(filePath):
     with open(filePath, mode='r', encoding='utf-8') as file:
@@ -74,9 +75,10 @@ def processInventoryFile(filePath):
             cost = row[5].strip()
             product = Product(product_id, barcode, name, price, quantity, cost)
             inventory.append(product)
+    return inventory
     print(message_loaded_inventory)
 
-def save_inventory():
+def save_inventory(inventory):
     with open(directory_path + filename, mode='w', newline='', encoding='utf-8') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(fieldnames)  # Write header

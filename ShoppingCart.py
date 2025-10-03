@@ -52,7 +52,7 @@ def buy_shopping_cart(shopping_cart, sales):
             payment_done = False
         else:
             payment_done = True
-    sale = Sale(shopping_cart.copy(), total, payment_method)
-    sales = Inventory.add_to_sales(sale, sales)
-    Sales.add_sold_cart_to_clipboard(sale)
+    sale = Sales.Sale(shopping_cart.copy(), total, payment_method)
+    sales = Sales.add_to_sales(sale, sales)
+    Sales.sold_cart_to_clipboard(sale)
     return True

@@ -3,6 +3,8 @@ from Inventory import *
 from tkinter import messagebox, simpledialog
 from datetime import * 
 import pyperclip
+import csv
+import os
 
 #Title for window showing all sales.
 show_sales_title = "Ventas del dia."
@@ -52,29 +54,33 @@ class Sale:
 #Load sale file into memory.
 def load_sales_file():
     if os.path.exists(sales_directory_path + sales_filename):
-        process_sales_file(sales_directory_path + sales_filename)
-        return
+        return process_sales_file(sales_directory_path + sales_filename)
     else:
-        with open(sales_directory_path + sales_filename, mode='w+', newline='', encoding='utf-8') as salesfile:
+        with open(sales_directory_path + sales_filename, mode='x', newline='', encoding='utf-8') as salesfile:
             salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
+        return process_sales_file(sales_directory_path + sales_filename)
 
 def process_sales_file(file_path):
+    sales = []
     with open(file_path, mode='r', encoding='utf-8') as file:
         csv_reader = csv.reader(file)
         next(csv_reader)
         for row in csv_reader:
             product_names = row[1].strip().split(" + ")
             products = []
-            for name in products_names:
-                for product in Products:
-                    if prod.getName() == name:
+            for name in product_names:
+                for product in inventory:  # Assuming inventory is available globally
+                    if product.getName() == name:
                         products.append(product)
                         break
             ammount = float(row[2].strip())
             kind_of_payment = row[3].strip()
             time_of_sale = row[4].strip()
             sale = Sale(products, ammount, kind_of_payment, time_of_sale)
-            Sales.append(sale)
+            sales.append(sale)
+    print("Returning sales from process sales file.")
+    print(sales)
+    return sales
 
 #Adds a sale to the sales list.
 def add_to_sales(saleToAdd, sales):
@@ -107,10 +113,10 @@ def sold_cart_to_clipboard(sale):
     pyperclip.copy(clipboard_text)
     return clipboard_copied_message
 
-def buy_shopping_cart(shoppingCart):
+def buy_shopping_cart(shoppingCart, sales):
     total = 0
     for product in shoppingCart:
-        ammount = prod.getPrice().replace("$", "").replace(".", "").replace(",", "")
+        ammount = product.getPrice().replace("$", "").replace(".", "").replace(",", "")
         total += float(ammount)
     price_to_pay = total_to_pay_message + str(total)
     payment_done = False
@@ -123,13 +129,13 @@ def buy_shopping_cart(shoppingCart):
         else:
             payment_done = True
     sale = Sale(shoppingCart.copy(), total, payment_method)
-    add_to_sales(sale)
+    add_to_sales(sale, sales)
     sold_cart_to_clipboard(sale)
     return True
 
 def closing_statement(sales):
     if not sales:
-        messagebox.showingo("Cierre de Caja", "No hay ventas registradas hoy.:")
+        messagebox.showinfo("Cierre de Caja", "No hay ventas registradas hoy.")
         return
     total_sales = 0
     for sale in sales:
