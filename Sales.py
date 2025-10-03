@@ -33,16 +33,16 @@ payment_window_title = "Total a Pagar"
 
 
 class Sale:
-    def __init__(self, product_name, ammount, kindOfPayment, time_of_sale = datetime.now().strftime("%H:%M:%S")):
+    def __init__(self, product_name, price, kindOfPayment, time_of_sale = datetime.now().strftime("%H:%M:%S")):
         self.product_name = product_name
-        self.ammount = ammount
+        self.price = price
         self.kindOfPayment = kindOfPayment
         self.time_of_sale = time_of_sale
 
     def getProductName(self):
         return self.product_name
-    def getAmmount(self):
-        return self.ammount
+    def getPrice(self):
+        return self.price
     def getKindOfPayment(self):
         return self.kindOfPayment
     def getTimeOfSale(self):
@@ -66,16 +66,19 @@ def process_sales_file(file_path):
         csv_reader = csv.reader(file)
         next(csv_reader)
         for row in csv_reader:
-            product_names = row[1].strip().split(" + ")
+            product_names = row[0].strip().split(" + ")
             products = []
             for name in product_names:
                 for product in inventory:  # Assuming inventory is available globally
                     if product.getName() == name:
                         products.append(product)
                         break
-            ammount = float(row[2].strip())
-            kind_of_payment = row[3].strip()
-            time_of_sale = row[4].strip()
+            ammount = float(row[1].strip())
+            kind_of_payment = row[2].strip()
+            try:
+                time_of_sale = row[3].strip()
+            except IndexError:
+                time_of_sale = None
             sale = Sale(products, ammount, kind_of_payment, time_of_sale)
             sales.append(sale)
     print("Returning sales from process sales file.")
@@ -92,8 +95,8 @@ def return_sales(sales):
     if not sales:
         messagebox.showinfo(show_sales_title, show_sales_no_sales)
         return
-    total_sales = sum(sale.getAmmount() for sale in sales)
-    sales_name_list = "\n\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
+    total_sales = sum(sale.getPrice() for sale in sales)
+    sales_name_list = "\n\n".join([f"Venta: {sale.getPrice()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
     messagebox.showinfo(show_sales_title, f"{show_sales_sales}{sales_name_list}\n\nTotal: {total_sales}")
 
 #Saves all sales to a reloadable CSV file.
@@ -102,12 +105,12 @@ def save_sales_file(sales):
         csv_writer = csv.writer(file)
         csv_writer.writerow(sales_fieldnames)  # Write header
         for sale in sales:
-            csv_writer.writerow([sale.getProductName(), sale.getAmmount(), sale.getKindOfPayment()])
+            csv_writer.writerow([sale.getProductName(), sale.getPrice(), sale.getKindOfPayment()])
 
 #Copies the names, prices and method of pay to the clipboard to pase onto another spreadsheet software.
 def sold_cart_to_clipboard(sale):
     names = " + ".join([product.getName() for product in sale.getProducts()])
-    total = sale.getAmmount()
+    total = sale.getPrice()
     payment_method = sale.getKindOfPayment()
     clipboard_text = names + "\t" + payment_method + "\t" + str(total)
     pyperclip.copy(clipboard_text)
@@ -128,10 +131,11 @@ def buy_shopping_cart(shoppingCart, sales):
             messagebox.showerror("Error", "Metodo de pago invalido.")
         else:
             payment_done = True
-    sale = Sale(shoppingCart.copy(), total, payment_method)
-    add_to_sales(sale, sales)
+    sale_name = " + ".join([product.getName() for product in shoppingCart])
+    sale = Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
+    sales = add_to_sales(sale, sales)
     sold_cart_to_clipboard(sale)
-    return True
+    return sales
 
 def closing_statement(sales):
     if not sales:
@@ -139,6 +143,6 @@ def closing_statement(sales):
         return
     total_sales = 0
     for sale in sales:
-        total_sales += sale.getAmmount()
-    sales_list = "\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
+        total_sales += sale.getPrice()
+    sales_list = "\n".join([f"Venta: {sale.getPrice()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
     messagebox.showinfo("Ventas Registradas", f"Ventas:\n{sales_list}\n\nTotal: {total_sales}")

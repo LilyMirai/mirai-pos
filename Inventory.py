@@ -76,10 +76,9 @@ def processInventoryFile(filePath):
             product = Product(product_id, barcode, name, price, quantity, cost)
             inventory.append(product)
     return inventory
-    print(message_loaded_inventory)
 
 def save_inventory(inventory):
-    with open(directory_path + filename, mode='w', newline='', encoding='utf-8') as file:
+    with open(directory_path + filename, mode='w+', newline='', encoding='utf-8') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(fieldnames)  # Write header
         for product in inventory:
