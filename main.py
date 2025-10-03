@@ -93,9 +93,6 @@ class Sale:
         return self.ammount
     def getKindOfPayment(self):
         return self.kindOfPayment
-    
-def addToSales(sale):
-    Sales.append(sale)
 
 def lookUpProduct():
     barcode_to_lookup = simpledialog.askstring("Buscar Producto", "Ingrese el codigo de barras del producto:")
@@ -208,13 +205,6 @@ def removeFromCart(product):
     else:
         print("Producto no encontrado en el carrito.")
 
-def substractProductsFromInventory():
-    for prod in shoppingCart:
-        for item in Products:
-            if prod.getBarcode() == item.getBarcode():
-                item.removeOne()
-                break
-
 def viewCart():
     cart_contents = "\n".join([f"{prod.getName()} - {prod.getPrice()}" for prod in shoppingCart])
     messagebox.showinfo("Carrito de Compras", f"Productos en el carrito:\n{cart_contents}")
@@ -315,7 +305,7 @@ def menu():
 
         elif action == '5': #Comprar Carrito
             if buy_shopping_cart(shoppingCart) != False:
-                substractProductsFromInventory()
+                substract_sale_from_inventory(shoppingCart)
                 shoppingCart = emptyShoppingCart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
                 save_inventory()

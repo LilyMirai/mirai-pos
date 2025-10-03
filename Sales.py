@@ -51,6 +51,33 @@ class Sale:
 #Holds all sales for the day.
 Sales = []
 
+#Load sale file into memory.
+def load_sales_file():
+    if os.path.exists(sales_path + sales_filename):
+        process_sales_file(sales_directory_path + sales_filename)
+        return
+    else:
+        with open(directory_path + filename, mode='w', newline='', encoding='utf-8') as salesfile:
+            salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
+
+def process_sales_file(file_path):
+    with open(file_path, mode='r', encoding='utf-8') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)
+        for row in csv_reader:
+            product_names = row[1].strip().split(" + ")
+            products = []
+            for name in products_names:
+                for product in Products:
+                    if prod.getName() == name:
+                        products.append(product)
+                        break
+            ammount = float(row[2].strip())
+            kind_of_payment = row[3].strip()
+            time_of_sale = row[4].strip()
+            sale = Sale(products, ammount, kind_of_payment, time_of_sale)
+            Sales.append(sale)
+
 #Adds a sale to the sales list.
 def add_to_sales(saleToAdd):
     Sales.append(saleToAdd)

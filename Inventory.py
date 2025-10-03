@@ -61,3 +61,9 @@ def save_inventory():
         for product in inventory:
             csv_writer.writerow([product.product_id, product.barcode, product.name, product.price, product.quantity, product.cost])
 
+def substract_sale_from_inventory(shoppingCart):
+    for product in shoppingCart:
+        for item in inventory:
+            if product.barcode == item.barcode:
+                item.quantity -= product.quantity
+                return
