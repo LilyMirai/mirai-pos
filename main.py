@@ -25,103 +25,6 @@ sale = None
 Products = []
 Sales = []
 
-def lookUpProduct():
-    barcode_to_lookup = simpledialog.askstring("Buscar Producto", "Ingrese el codigo de barras del producto:")
-    if barcode_to_lookup != "":
-        for product in Products:
-            if product.getBarcode() == barcode_to_lookup:
-                messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
-                return
-        messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
-
-def quickLookUpProduct(barcode):
-    if barcode != "":
-        for product in Products:
-            if product.getBarcode() == barcode:
-                messagebox.showinfo("Producto Encontrado", f"Nombre: {product.getName()}\nPrecio: {product.getPrice()}\nCantidad: {product.getQuantity()}\nDescripcion: {product.getDescription()}")
-                return
-        messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
-
-def nameSearch(name, mode):
-    if name is None or name == '':
-        return
-    found_products = [product for product in Products if name.lower() in product.getName().lower()]
-    if found_products:
-        if mode == 1:
-            product_list = "\n".join([f"{prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for prod in found_products])
-            messagebox.showinfo("Productos Encontrados", f"Productos que coinciden con '{name}':\n{product_list}")
-        elif mode == 2:
-            product_list = "\n".join([f"{idx+1}. {prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for idx, prod in enumerate(found_products)])
-            choice = simpledialog.askstring("Seleccionar Producto", f"Productos que coinciden con '{name}':\n{product_list}\nIngrese el numero del producto a añadir al carrito:")
-            if choice is None or choice == '':
-                return
-            if choice.isdigit() and 1 <= int(choice) <= len(found_products):
-                selected_product = found_products[int(choice)-1]
-                addToCart(selected_product)
-            else:
-                messagebox.showwarning("No Valido", "Seleccion invalida.")
-
-def quickAddToCart(name):
-    MAX_ELEMENTS_PAGE = 40;
-    if name is None or name == '':
-        return
-    found_products = [product for product in Products if name.lower() in product.getName().lower()]
-    if found_products:
-        # Paginacion
-        current_page = 0;
-        pages = [found_products[i:i+MAX_ELEMENTS_PAGE] for i in range (0, len(found_products), MAX_ELEMENTS_PAGE)]
-
-        while(True):
-            product_list = "\n".join([f"{idx+1}. {prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for idx, prod in enumerate(pages[current_page])])
-            choice = simpledialog.askstring("Seleccionar Producto", f"Productos que coinciden con '{name}' (Pagina '{current_page+1}/{len(pages)}'):\n{product_list}\n\nEscape o Cancelar para salir\nAnterior o Siguiente para cambiar pagina\n\nPara añadir al carrito ingrese numero:")
-            if choice is None or choice == '':
-                return
-            if choice.isdigit() == False:
-                if choice.lower() == "anterior" or choice.lower() == "a":
-                    current_page = max(0, current_page - 1)
-                elif choice.lower() == "siguiente" or choice.lower() == "s":
-                    current_page = min(len(pages) - 1, current_page + 1)
-                elif choice.lower() == "escape" or choice.lower() == "cancelar":
-                    return
-            if choice.isdigit() and 1 <= int(choice) <= len(found_products):
-                selected_product = found_products[int(choice)-1]
-                addToCart(selected_product)
-                return
-
-def quickNameLookUp(name):
-    #change messagebox for a prompt that asks if they want to add one of the listed items to cart, closing or clicking no returns to menu
-    found_products = [product for product in Products if name.lower() in product.getName().lower()]
-    if found_products:
-        product_list = "\n".join([f"{prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for prod in found_products])
-        if messagebox.askyesno("Productos Encontrados", f"Productos que coinciden con '{name}':\n{product_list}\n¿Desea añadir alguno al carrito?"):
-            addToCartFromName(name)
-    else:
-        messagebox.showwarning("No Encontrado", "No se encontraron productos que coincidan con el nombre.")
-
-def addToCartFromName(name):
-    if name is None or name == '':
-        return
-    found_products = [product for product in Products if name.lower() in product.getName().lower()]
-    if found_products:
-        product_list = "\n".join([f"{idx+1}. {prod.getName()} - {prod.getPrice()} - Cantidad: {prod.getQuantity()}" for idx, prod in enumerate(found_products)])
-        choice = simpledialog.askstring("Seleccionar Producto", f"Productos que coinciden con '{name}':\n{product_list}\nIngrese el numero del producto a añadir al carrito:")
-        if choice is None or choice == '':
-            return
-        if choice.isdigit() and 1 <= int(choice) <= len(found_products):
-            selected_product = found_products[int(choice)-1]
-            addToCart(selected_product)
-        else:
-            messagebox.showwarning("No Valido", "Seleccion invalida.")
-
-def addToCartFromBarcode(barcode):
-    if barcode is None or barcode == '':
-        return
-    for product in Products:
-        if product.getBarcode() == barcode:
-            addToCart(product)
-            return
-    messagebox.showwarning("No Encontrado", "Producto no encontrado en el inventario.")
-
 def emptyShoppingCart(shoppingCart):
     shoppingCart = []
     return shoppingCart
@@ -153,17 +56,6 @@ def addCustomProductToCart():
     product = Product('', name, price, 1, "Producto Personalizado", "", "", "", "")
     addToCart(product)
 
-def defineKindOfSearch(input):
-    if input is None or input == '':
-        return False
-    if input.isdigit() == False:
-        quickAddToCart(input)
-        return True
-    elif int(input) > 5:
-        quickLookUpProduct(input)
-        return True
-    return False
-
 def closingStatement():
     if not Sales:
         messagebox.showinfo("Ventas", "No hay ventas registradas.")
@@ -180,7 +72,6 @@ addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 def save():
     save_inventory()
     save_sales_file()
-
 
 def menu():
     global shoppingCart
@@ -216,13 +107,11 @@ def menu():
             continue
 
         elif action == '1':
-            search = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras o nombre del producto a añadir:")
-            if search is None or search == '':
+            search_term = simpledialog.askstring("Añadir al Carrito", "Ingrese el codigo de barras o nombre del producto a añadir:")
+            if search_term is None or search_term == '':
                 continue
-            if search.isdigit() == False:
-                nameSearch(search, 2)
             else:
-                addToCartFromBarcode(search)
+                addToCart(search(search_term))
 
         elif action == '2': #Add Custom Product
             addCustomProductToCart()
@@ -248,10 +137,9 @@ def menu():
         elif action == '6': #Ver Ventas
             return_sales(Sales)
 
-        elif defineKindOfSearch(action): #if the input was a search, search, then skip the rest of the loop
+        elif search(action) != None:
+            addToCart(search(action))
             continue
-
-
 
 load_inventory()
 load_sales_file()
