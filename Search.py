@@ -76,7 +76,9 @@ def quick_add_to_cart_by_name(search_term):
                 return selected_product
             
 def search(search_term):
-    if identify_barcode(search_term) == True:
+    if search_term is None or search_term == "":
+        return None
+    elif identify_barcode(search_term) == True:
         return search_by_barcode(search_term)
     elif identify_barcode(search_term) == False:
         return quick_add_to_cart_by_name(search_term)

@@ -1,6 +1,6 @@
 from math import prod
 from Inventory import *
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 from datetime import * 
 import pyperclip
 
@@ -48,8 +48,6 @@ class Sale:
     def getProducts(self):
         return self.product_name
     
-#Holds all sales for the day.
-Sales = []
 
 #Load sale file into memory.
 def load_sales_file():
@@ -79,8 +77,9 @@ def process_sales_file(file_path):
             Sales.append(sale)
 
 #Adds a sale to the sales list.
-def add_to_sales(saleToAdd):
-    Sales.append(saleToAdd)
+def add_to_sales(saleToAdd, sales):
+    sales.append(saleToAdd)
+    return sales
 
 #Shows all sales for the day in a messagebox.
 def return_sales(sales):
@@ -127,3 +126,13 @@ def buy_shopping_cart(shoppingCart):
     add_to_sales(sale)
     sold_cart_to_clipboard(sale)
     return True
+
+def closing_statement(sales):
+    if not sales:
+        messagebox.showingo("Cierre de Caja", "No hay ventas registradas hoy.:")
+        return
+    total_sales = 0
+    for sale in sales:
+        total_sales += sale.getAmmount()
+    sales_list = "\n".join([f"Venta: {sale.getAmmount()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
+    messagebox.showinfo("Ventas Registradas", f"Ventas:\n{sales_list}\n\nTotal: {total_sales}")
