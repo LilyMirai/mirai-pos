@@ -3,7 +3,9 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 from datetime import date, timedelta
 from Inventory import *
-from Sales import buy_shopping_cart, return_sales, save_sales_file
+from Sales import *
+from Search import *
+
 
 #orden csv entrante: codigo, nombre, precio, inventario, descripcion, siniva, coniva, venta, final
  
@@ -20,79 +22,8 @@ sales_filename = "Ventas " + str(current_date) + ".csv"
 shoppingCart = []
 sale = None
 
-def openSalesFile():
-    if os.path.exists(sales_path + sales_filename):
-        processSalesFile(sales_path + sales_filename)
-        return
-    else:
-        with open(directory_path + filename, mode='w', newline='', encoding='utf-8-sig') as salesfile:
-            salesfile.write("Venta, Productos, Metodo de Pago, Monto\n")
-        return
-
-def processSalesFile(file_path):
-    with open(file_path, mode='r', encoding='utf-8-sig') as file:
-        csv_reader = csv.reader(file)
-        next(csv_reader)  # Skip header row if present
-        for row in csv_reader:
-            products_names = row[1].strip().split(" + ")
-            products = []
-            for name in products_names:
-                for prod in Products:
-                    if prod.getName() == name:
-                        products.append(prod)
-                        break
-            ammount = int(row[3].strip())
-            kindOfPayment = row[2].strip()
-            saleToAdd = Sale(products, ammount, kindOfPayment)
-            Sales.append(saleToAdd)
-
-
-Products = []  #Added to inventory.py
-class Product:
-    def __init__(self, barcode, name, price, quantity, description, siniva, coniva, venta, final):
-        self.barcode = barcode
-        self.name = name
-        self.price = price
-        self.quantity = quantity
-        self.description = description
-        self.siniva = siniva
-        self.coniva = coniva
-        self.venta = venta
-        self.final = final
-
-    def getBarcode(self):
-        return self.barcode
-    def getName(self):
-        return self.name
-    def getPrice(self):
-        return self.price
-    def getQuantity(self):
-        return self.quantity
-    def getDescription(self):
-        return self.description
-    
-    def addQuantity(self, amount):
-        self.quantity += amount
-    def addOne(self):
-        self.quantity += 1
-    def removeOne(self):
-        self.quantity -= 1
-    def setPrice(self, new_price):
-        self.price = new_price
-
+Products = []
 Sales = []
-class Sale:
-    def __init__(self, products, ammount, kindOfPayment):
-        self.products = products
-        self.ammount = ammount
-        self.kindOfPayment = kindOfPayment
-    
-    def getProducts(self):
-        return self.products
-    def getAmmount(self):
-        return self.ammount
-    def getKindOfPayment(self):
-        return self.kindOfPayment
 
 def lookUpProduct():
     barcode_to_lookup = simpledialog.askstring("Buscar Producto", "Ingrese el codigo de barras del producto:")
@@ -323,7 +254,7 @@ def menu():
 
 
 load_inventory()
-openSalesFile()
+load_sales_file()
 save()
 menu()
 

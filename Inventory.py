@@ -19,6 +19,28 @@ class Product:
         self.quantity = quantity
         self.cost = cost
 
+    def getProductID(self):
+        return self.product_id
+    def getBarcode(self):
+        return self.barcode
+    def getName(self):
+        return self.name
+    def getPrice(self):
+        return self.price
+    def getQuantity(self):
+        return self.quantity
+    def getDescription(self):
+        return self.description
+    
+    def addQuantity(self, amount):
+        self.quantity += amount
+    def addOne(self):
+        self.quantity += 1
+    def removeOne(self):
+        self.quantity -= 1
+    def setPrice(self, new_price):
+        self.price = new_price
+
 current_date = date.today()
 previous_date = current_date - timedelta(days=1)
 directory_path = "./inventories/"

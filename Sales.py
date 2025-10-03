@@ -53,11 +53,11 @@ Sales = []
 
 #Load sale file into memory.
 def load_sales_file():
-    if os.path.exists(sales_path + sales_filename):
+    if os.path.exists(sales_directory_path + sales_filename):
         process_sales_file(sales_directory_path + sales_filename)
         return
     else:
-        with open(directory_path + filename, mode='w', newline='', encoding='utf-8') as salesfile:
+        with open(sales_directory_path + sales_filename, mode='w', newline='', encoding='utf-8') as salesfile:
             salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
 
 def process_sales_file(file_path):
