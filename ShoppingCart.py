@@ -1,5 +1,5 @@
 from tkinter import messagebox, simpledialog
-import Inventory
+from Inventory import *
 import Sales
 
 def empty_shopping_cart(shoppingCart):
@@ -55,4 +55,5 @@ def buy_shopping_cart(shopping_cart, sales):
     sale = Sales.Sale(shopping_cart.copy(), total, payment_method)
     sales = Sales.add_to_sales(sale, sales)
     Sales.sold_cart_to_clipboard(sale)
-    return True
+    print(sales)
+    return sales

@@ -52,38 +52,37 @@ class Sale:
     
 
 #Load sale file into memory.
-def load_sales_file():
+def load_sales_file(sales = []):
     if os.path.exists(sales_directory_path + sales_filename):
-        return process_sales_file(sales_directory_path + sales_filename)
+        print("Sales file was found, loading.")
+        return process_sales_file(sales_directory_path + sales_filename, sales)
     else:
+        print("Sales file was not found, creating.")
         with open(sales_directory_path + sales_filename, mode='x', newline='', encoding='utf-8') as salesfile:
             salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
-        return process_sales_file(sales_directory_path + sales_filename)
+        return process_sales_file(sales_directory_path + sales_filename, sales)
 
-def process_sales_file(file_path):
-    sales = []
+def process_sales_file(file_path, sales):
     with open(file_path, mode='r', encoding='utf-8') as file:
         csv_reader = csv.reader(file)
-        next(csv_reader)
+        next(csv_reader)  # Skip header row if present
         for row in csv_reader:
-            product_names = row[0].strip().split(" + ")
+            products_names = row[0].strip().split(" + ")
             products = []
-            for name in product_names:
-                for product in inventory:  # Assuming inventory is available globally
-                    if product.getName() == name:
-                        products.append(product)
+            for name in products_names:
+                for prod in inventory:
+                    if prod.getName() == name:
+                        products.append(prod)
                         break
-            ammount = float(row[1].strip())
-            kind_of_payment = row[2].strip()
+            ammount = int(row[1].strip())
+            kindOfPayment = row[2].strip()
             try:
                 time_of_sale = row[3].strip()
             except IndexError:
                 time_of_sale = None
-            sale = Sale(products, ammount, kind_of_payment, time_of_sale)
-            sales.append(sale)
-    print("Returning sales from process sales file.")
-    print(sales)
-    return sales
+            saleToAdd = Sale(products, ammount, kindOfPayment, time_of_sale)
+            sales.append(saleToAdd)
+        return sales
 
 #Adds a sale to the sales list.
 def add_to_sales(saleToAdd, sales):
