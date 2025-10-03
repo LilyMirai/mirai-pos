@@ -55,7 +55,7 @@ def load_sales_file():
         process_sales_file(sales_directory_path + sales_filename)
         return
     else:
-        with open(sales_directory_path + sales_filename, mode='w', newline='', encoding='utf-8') as salesfile:
+        with open(sales_directory_path + sales_filename, mode='w+', newline='', encoding='utf-8') as salesfile:
             salesfile.write("Venta, Productos, Metodo de Pago, Monto, Hora\n")
 
 def process_sales_file(file_path):
