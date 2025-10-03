@@ -87,6 +87,7 @@ def save_inventory(inventory):
         csv_writer.writerow(fieldnames)  # Write header
         for product in inventory:
             csv_writer.writerow([product.product_id, product.barcode, product.name, product.price, product.quantity, product.cost])
+    return inventory
 
 def substract_sale_from_inventory(shoppingCart):
     for product in shoppingCart:

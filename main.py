@@ -82,7 +82,7 @@ def menu():
                 substract_sale_from_inventory(shoppingCart)
                 shoppingCart = empty_shopping_cart(shoppingCart)
                 messagebox.showinfo("Compra Exitosa", "Gracias por su compra.\nPega el contenido del portapapeles en la hoja de calculo.")
-                inventory = save_inventory(inventory)
+                save_inventory(inventory)
                 save_sales_file(sales)
                 sale = None
             else:

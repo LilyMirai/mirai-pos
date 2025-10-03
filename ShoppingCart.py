@@ -35,11 +35,19 @@ def price_to_int(price):
 
 def buy_shopping_cart(shopping_cart, sales):
     total = 0
-    for product in shopping_cart:
-        amount = product.getPrice()
-        amount = amount.replace("$", "")
-        amount = amount.replace(".", "")
-        total += (int(amount))
+    for item in shopping_cart:
+        # Debug: Check what type of object we're dealing with
+        print(f"Item type: {type(item)}, Item: {item}")
+        
+        # Only process if it's a Product object, not a Sale object
+        if hasattr(item, 'getPrice') and hasattr(item, 'getName'):
+            amount = item.getPrice()
+            amount = amount.replace("$", "")
+            amount = amount.replace(".", "")
+            total += (int(amount))
+        else:
+            print(f"Warning: Unexpected object type in shopping cart: {type(item)}")
+    
     payment_info = f"El total a pagar es: ${total:,}"
     payment_kind_info = "\nIngrese el metodo de pago:\ne. Efectivo\nd. Debito\nc. Credito\ntr. Transferencia\n\n0. Cancelar compra\n"
     payment = payment_info + "\n" + payment_kind_info
@@ -53,9 +61,13 @@ def buy_shopping_cart(shopping_cart, sales):
             payment_done = False
         else:
             payment_done = True
-    sale_name = " + ".join([product.getName() for product in shopping_cart])
+    
+    # Filter shopping_cart to only include Product objects for sale_name
+    products_only = [item for item in shopping_cart if hasattr(item, 'getName') and not isinstance(item, Sales.Sale)]
+    sale_name = " + ".join([product.getName() for product in products_only])
+    
     sale = Sales.Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
     sales = Sales.add_to_sales(sale, sales)
     Sales.sold_cart_to_clipboard(sale)
-    print(sales)
+    print(f"Sales after adding: {sales}")
     return sales

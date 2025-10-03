@@ -124,28 +124,6 @@ def sold_cart_to_clipboard(sale):
     pyperclip.copy(clipboard_text)
     return clipboard_copied_message
 
-def buy_shopping_cart(shoppingCart, sales):
-    total = 0
-    for product in shoppingCart:
-        ammount = product.getPrice().replace("$", "").replace(".", "").replace(",", "")
-        total += float(ammount)
-    price_to_pay = total_to_pay_message + str(total)
-    payment_done = False
-    while not payment_done:
-        payment_method = simpledialog.askstring(payment_window_title, price_to_pay)
-        if payment_method == '0':
-            return False
-        elif payment_method not in ['e', 'd', 'c', 'tr']:
-            messagebox.showerror("Error", "Metodo de pago invalido.")
-        else:
-            payment_done = True
-    sale_name = " + ".join([product.getName() for product in shoppingCart])
-    print(sale_name)
-    sale = Sale(shoppingCart, total, payment_method, datetime.now().strftime("%H:%M:%S"))
-    sales = add_to_sales(sale, sales)
-    sold_cart_to_clipboard(sale)
-    return sales
-
 def closing_statement(sales):
     if not sales:
         messagebox.showinfo("Cierre de Caja", "No hay ventas registradas hoy.")
