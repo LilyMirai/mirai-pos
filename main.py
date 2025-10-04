@@ -91,9 +91,10 @@ def menu():
         elif action == '6': #Ver Ventas
             return_sales(sales)
 
-        elif search(action) != None:
-            shoppingCart = add_to_cart(search(action), shoppingCart)
-            continue
+        else:
+            product = search(action)
+            if product != None:
+                shoppingCart = add_to_cart(product, shoppingCart)
 
 inventory = load_inventory()
 sales = load_sales_file()

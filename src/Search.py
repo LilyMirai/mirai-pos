@@ -63,14 +63,14 @@ def quick_add_to_cart_by_name(search_term):
             choice = simpledialog.askstring("Seleccionar Producto", f"Productos que coinciden con '{search_term}' (Pagina '{current_page + 1} de {len(pages)}):\n\n{product_list}\n\nIngrese el numero del producto para agregar al carrito, 's' para siguiente pagina, 'a' para pagina anterior, o '0' para cancelar.")
             if choice is None or choice == '0':
                 return None
-            elif choice.isdigit() == False:
+            elif not choice.isdigit():
                 if choice.lower() == 'a' or choice.lower() == 'anterior':
                     current_page = max(0, current_page - 1)
                 elif choice.lower() == 's' or choice.lower() == 'siguiente':
                     current_page = min(len(pages) - 1, current_page + 1)
                 elif choice.lower() == 'escape' or choice.lower() == 'e':
                     return None
-            if choice.isdigit() and 1 <= int(choice) <= len(found_products):
+            elif choice.isdigit() and 1 <= int(choice) <= len(found_products):
                 selected_product = found_products[int(choice) - 1]
                 return selected_product
             
@@ -79,7 +79,5 @@ def search(search_term):
         return None
     elif identify_barcode(search_term) == True:
         return search_by_barcode(search_term)
-    elif identify_barcode(search_term) == False:
-        return quick_add_to_cart_by_name(search_term)
     else:
-        return None
+        return quick_add_to_cart_by_name(search_term)
