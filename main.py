@@ -27,7 +27,7 @@ menuString = '''Seleccione una accion:
 
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
 
-def save():
+def save(inventory, sales):
     save_inventory(inventory)
     save_sales_file(sales)
 
@@ -100,7 +100,7 @@ def menu():
 
 inventory = load_inventory()
 sales = load_sales_file()
-save()
+save(inventory, sales)
 menu()
 
 
