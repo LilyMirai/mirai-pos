@@ -55,7 +55,7 @@ def menu():
             if not messagebox.askyesno("Guardar y salir", "¿Está seguro que desea guardar y salir?"):
                 continue
             closing_statement(sales)
-            save()
+            save(inventory, sales)
             break
         elif action == '8': #save
             closing_statement(sales)
