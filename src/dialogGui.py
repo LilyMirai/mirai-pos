@@ -64,7 +64,9 @@ def menu():
 
         elif action == '1':
             search_term = look_up_menu()
-            shoppingCart = add_to_cart(search(search_term), shoppingCart)
+            product = search(search_term)
+            if product != None:
+                shoppingCart = add_to_cart(product, shoppingCart)
 
         elif action == '2': #Add Custom Product
             shoppingCart = add_custom_product_to_cart(shoppingCart)
