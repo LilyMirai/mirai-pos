@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
-from Inventory import *
-from Sales import *
-from Search import *
-from ShoppingCart import *
+from src.Inventory import *
+from src.Sales import *
+from src.Search import *
+from src.ShoppingCart import *
 
 sale = None
 shoppingCart = []

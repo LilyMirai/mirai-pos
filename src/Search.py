@@ -1,6 +1,6 @@
 from re import search
 from tkinter import messagebox, simpledialog
-from Inventory import inventory
+from .Inventory import inventory
 from tkinter import simpledialog, messagebox
 
 window_title_search = "Buscar Producto"

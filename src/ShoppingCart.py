@@ -1,6 +1,6 @@
 from tkinter import messagebox, simpledialog
-from Inventory import *
-import Sales
+from .Inventory import *
+from .Sales import *
 from datetime import *
 
 def empty_shopping_cart(shoppingCart):
@@ -63,11 +63,11 @@ def buy_shopping_cart(shopping_cart, sales):
             payment_done = True
     
     # Filter shopping_cart to only include Product objects for sale_name
-    products_only = [item for item in shopping_cart if hasattr(item, 'getName') and not isinstance(item, Sales.Sale)]
+    products_only = [item for item in shopping_cart if hasattr(item, 'getName') and not isinstance(item, Sale)]
     sale_name = " + ".join([product.getName() for product in products_only])
     
-    sale = Sales.Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
-    sales = Sales.add_to_sales(sale, sales)
-    Sales.sold_cart_to_clipboard(sale)
+    sale = Sale(sale_name, total, payment_method, datetime.now().strftime("%H:%M:%S"))
+    sales = add_to_sales(sale, sales)
+    sold_cart_to_clipboard(sale)
     print(f"Sales after adding: {sales}")
     return sales
