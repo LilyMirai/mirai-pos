@@ -1,7 +1,8 @@
 from multiprocessing import process
 import csv, os
 from datetime import date, timedelta
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog, messagebox
+from . import ShoppingCart
 
 inventory = []
 
@@ -95,3 +96,57 @@ def substract_sale_from_inventory(shoppingCart):
             if product.barcode == item.barcode:
                 item.quantity -= product.quantity
                 return
+            
+def add_new_product_to_inventory(new_product, inventory):
+    inventory.append(new_product)
+    return inventory
+
+def define_new_product(inventory):
+    product_id = simpledialog.askstring("Nuevo Producto", "Ingrese el ID del producto (dejar en blanco si no aplica):", initialvalue="")
+    barcode = simpledialog.askstring("Nuevo Producto", "Ingrese el codigo de barras del producto (dejar en blanco si no aplica):", initialvalue="")
+    name = simpledialog.askstring("Nuevo Producto", "Ingrese el nombre del producto:", initialvalue="Producto Nuevo")
+    digit = False
+    while not digit:
+        price = simpledialog.askstring("Nuevo Producto", "Ingrese el precio del producto:", initialvalue="$1000")
+        try:
+            price_int = ShoppingCart.price_to_int(price)  # Attempt to convert to integer
+            digit = True
+        except ValueError:
+            messagebox.showwarning("Precio Invalido", "El precio debe ser un numero entero.")
+
+    digit = False
+    while not digit:
+        quantity_str = simpledialog.askstring("Nuevo Producto", "Ingrese la cantidad del producto:", initialvalue="1")
+        try:
+            quantity = int(quantity_str)
+            digit = True
+        except ValueError:
+            messagebox.showwarning("Cantidad Invalida", "La cantidad debe ser un numero entero.")
+    
+    cost = simpledialog.askstring("Nuevo Producto", "Ingrese el costo del producto (dejar en blanco si no aplica):", initialvalue="")
+    
+    if name is None or name == '' or price is None or price == '' or quantity_str is None or quantity_str == '':
+        return None
+    
+    
+    new_product = Product(product_id, barcode, name, price, quantity, cost)
+    inventory = add_new_product_to_inventory(new_product, inventory)
+    return inventory
+
+def quick_define_new_product(inventory):
+    name = simpledialog.askstring("Nuevo Producto", "Ingrese el nombre del producto:", initialvalue="Producto Nuevo")
+    digit = False
+    while not digit:
+        price = simpledialog.askstring("Nuevo Producto", "Ingrese el precio del producto:", initialvalue="$1000")
+        try:
+            price_int = ShoppingCart.price_to_int(price)  # Attempt to convert to integer
+            digit = True
+        except ValueError:
+            messagebox.showwarning("Precio Invalido", "El precio debe ser un numero entero.")
+
+    if name is None or name == '' or price is None or price == '':
+        return None
+    
+    new_product = Product("", "", name, price, 1, "")
+    inventory = add_new_product_to_inventory(new_product, inventory)
+    return inventory

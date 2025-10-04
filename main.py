@@ -17,8 +17,8 @@ menuString = '''Seleccione una accion:
 4. Vaciar Carrito.
 5. Comprar Carrito
 
-6. Ver Ventas
-7. Ver Reportes (No implementado)
+6. Ver Ventas.
+7. Añadir producto al inventario.
 
 8. Guardar
 9. Guardar y salir
@@ -92,6 +92,11 @@ def menu():
 
         elif action == '6': #Ver Ventas
             return_sales(sales)
+        elif action == '7': #Agregar Producto
+            if messagebox.askyesno('Agregar Producto', '¿Desea agregar un nuevo producto de forma detallada? (Si selecciona No, se le pedira solo nombre y precio, y la cantidad sera 1)'):
+                inventory = define_new_product(inventory)
+            else:
+                inventory = quick_define_new_product(inventory)
 
         else:
             product = search(action)
