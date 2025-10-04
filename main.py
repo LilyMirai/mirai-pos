@@ -59,7 +59,7 @@ def menu():
             break
         elif action == '8': #save
             closing_statement(sales)
-            save()
+            save(inventory, sales)
             continue
 
         elif action == '1':
