@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import messagebox, simpledialog
 from .Inventory import *
 from .Sales import *
@@ -55,11 +54,11 @@ def menu():
             if not messagebox.askyesno("Guardar y salir", "¿Está seguro que desea guardar y salir?"):
                 continue
             closing_statement(sales)
-            save()
+            save(inventory, sales)
             break
         elif action == '8': #save
             closing_statement(sales)
-            save()
+            save(inventory, sales)
             continue
 
         elif action == '1':
@@ -101,7 +100,7 @@ def menu():
 def launchGui():
     inventory = load_inventory()
     sales = load_sales_file()
-    save()
+    save(inventory, sales)
     menu()
 
 

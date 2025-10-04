@@ -30,8 +30,8 @@ def add_custom_product_to_cart(shoppingCart):
     return shoppingCart
 
 def price_to_int(price):
-    ammount = price.replace("$", "").replace(".", "").replace(",", "")
-    return int(ammount)
+    amount = price.replace("$", "").replace(".", "").replace(",", "")
+    return int(amount)
 
 def buy_shopping_cart(shopping_cart, sales):
     total = 0
