@@ -100,7 +100,7 @@ def return_sales(sales):
         messagebox.showinfo(show_sales_title, show_sales_no_sales)
         return
     total_sales = sum(sale.getPrice() for sale in sales)
-    sales_name_list = "\n\n".join([f"Venta: {sale.getPrice()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
+    sales_name_list = "\n\n".join([f"Venta: {sale.getProductName()} {sale.getPrice()} - Metodo: {sale.getKindOfPayment()}" for sale in sales])
     messagebox.showinfo(show_sales_title, f"{show_sales_sales}{sales_name_list}\n\nTotal: {total_sales}")
 
 #Saves all sales to a reloadable CSV file.
