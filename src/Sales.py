@@ -1,5 +1,6 @@
 from math import prod
 from .Inventory import *
+from .Product import Product
 from tkinter import messagebox, simpledialog
 from datetime import * 
 import pyperclip

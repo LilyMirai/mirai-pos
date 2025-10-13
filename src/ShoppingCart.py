@@ -1,5 +1,6 @@
 from tkinter import messagebox, simpledialog
 from .Inventory import *
+from .Product import Product
 from .Sales import *
 from datetime import *
 

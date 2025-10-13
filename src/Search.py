@@ -1,6 +1,7 @@
 from re import search
 from tkinter import messagebox, simpledialog
 from .Inventory import inventory
+from .Product import Product
 window_title_search = "Buscar Producto"
 search_prompt = "Ingrese el codigo de barras o nombre a buscar."
 
