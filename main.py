@@ -15,14 +15,14 @@ menuString = '''Seleccione una accion:
 2. Añadir producto personalizado al carrito.
 3. Ver Carrito
 4. Vaciar Carrito.
-5. Comprar Carrito
+5. Comprar Carrito.
 
-6. Ver Ventas.
-7. Añadir producto al inventario.
+6. Aplicar Descuento.
 
-8. Guardar
-9. Guardar y salir
-0. Salir sin guardar
+8. Ver Ventas.
+9. Añadir producto al inventario.
+
+0. Salir.
 '''
 
 addInstructions = "\n- Para buscar, ingresa un nombre o codigo de barra -\n"
@@ -48,19 +48,12 @@ def menu():
         if action is None or action == '': #if cancelled or empty, loop
             continue
 
-        elif action == '0': #exit without saving
-            if messagebox.askyesno("Salir sin guardar", "¿Está seguro que desea salir sin guardar?"):
-                break
-        elif action == '9': #save and exit
+        elif action == '0': #save and exit
             if not messagebox.askyesno("Guardar y salir", "¿Está seguro que desea guardar y salir?"):
                 continue
             closing_statement(sales)
             save(inventory, sales)
             break
-        elif action == '8': #save
-            closing_statement(sales)
-            save(inventory, sales)
-            continue
 
         elif action == '1':
             search_term = look_up_menu()
@@ -90,9 +83,27 @@ def menu():
             else:
                 continue
 
-        elif action == '6': #Ver Ventas
+        elif action == '6': #Aplicar Descuento
+            '''
+            
+            #make user choose between percentage or ammount discount, then call for the proper function
+            discount_type = simpledialog.askstring("Tipo de Descuento", "Ingrese '1' para descuento porcentual o '2' para descuento en monto fijo:")
+            if discount_type == '1':
+                shoppingCart = add_percentage_discount_to_product(shoppingCart)
+            elif discount_type == '2':
+                shoppingCart = add_ammount_discount_to_cart(shoppingCart)
+            else:
+                messagebox.showwarning("Tipo de Descuento Invalido", "Debe ingresar '1' o '2'.")
+                continue
+
+            '''
+
+            add_ammount_discount_to_cart(shoppingCart)
+            
+
+        elif action == '8': #Ver Ventas
             return_sales(sales)
-        elif action == '7': #Agregar Producto
+        elif action == '9': #Agregar Producto
             if messagebox.askyesno('Agregar Producto', '¿Desea agregar un nuevo producto de forma detallada? (Si selecciona No, se le pedira solo nombre y precio, y la cantidad sera 1)'):
                 inventory = define_new_product(inventory)
             else:
@@ -107,5 +118,4 @@ inventory = load_inventory()
 sales = load_sales_file()
 save(inventory, sales)
 menu()
-
 

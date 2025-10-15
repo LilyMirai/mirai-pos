@@ -31,8 +31,18 @@ def add_custom_product_to_cart(shoppingCart):
     return shoppingCart
 
 def price_to_int(price):
+    price = str(price)
     amount = price.replace("$", "").replace(".", "").replace(",", "")
     return int(amount)
+
+def total_cart_price(shoppingCart):
+    total = 0
+    for item in shoppingCart:
+        if hasattr(item, 'getPrice'):
+            amount = item.getPrice()
+            amount = amount.replace("$", "").replace(".", "").replace(",", "")
+            total += int(amount)
+    return total
 
 def buy_shopping_cart(shopping_cart, sales):
     total = 0
@@ -72,3 +82,83 @@ def buy_shopping_cart(shopping_cart, sales):
     sold_cart_to_clipboard(sale)
     print(f"Sales after adding: {sales}")
     return sales
+
+def add_ammount_discount_to_cart(shoppingCart):
+    discount_str = simpledialog.askstring("Descuento", "Ingrese el monto del descuento:", initialvalue="$0")
+    if discount_str is None or discount_str == '':
+        return shoppingCart  # No discount applied, return original cart
+    
+    try:
+        discount_amount = price_to_int(discount_str)
+    except ValueError:
+        messagebox.showwarning("Descuento Invalido", "El descuento debe ser un numero entero.")
+        return shoppingCart  # Invalid discount, return original cart
+    
+    if discount_amount <= 0:
+        messagebox.showwarning("Descuento Invalido", "El descuento debe ser mayor que cero.")
+        return shoppingCart  # Non-positive discount, return original cart
+    
+    if total_cart_price(shoppingCart) <= discount_amount:
+        messagebox.showwarning("Descuento Invalido", "El descuento no puede ser mayor o igual al total del carrito.")
+        return shoppingCart  # Discount exceeds or equals total, return original cart
+
+    # Create a special Product to represent the discount
+    discount_product = Product('', '', 'Descuento', f"-${discount_amount:,}", 1, '')
+    shoppingCart.append(discount_product)
+    return shoppingCart
+
+def add_percentage_discount_to_product(shoppingCart):
+    #prompt the user with the items in cart with their price, ask which product to discount
+    MAX_ELEMENTS_PAGE = 40
+    if shoppingCart == []:
+        messagebox.showwarning("Carrito Vacio", "El carrito esta vacio.")
+        return shoppingCart
+    current_page = 0
+    pages = [shoppingCart[i:i+MAX_ELEMENTS_PAGE] for i in range (0, len(shoppingCart), MAX_ELEMENTS_PAGE)]
+    while True:
+        product_list = "\n".join([f"{idx+1}. {prod.getName()} - {prod.getPrice()}" for idx, prod in enumerate(pages[current_page])])
+        choice = simpledialog.askstring("Seleccionar Producto", f"Productos en el carrito (Pagina '{current_page + 1} de {len(pages)}):\n\n{product_list}\n\nIngrese el numero del producto para aplicar descuento, 's' para siguiente pagina, 'a' para pagina anterior, o '0' para cancelar.")
+        if choice is None or choice == '0':
+            return shoppingCart
+        elif choice.lower() == 's':
+            if current_page < len(pages) - 1:
+                current_page += 1
+            else:
+                messagebox.showinfo("Ultima Pagina", "Ya estas en la ultima pagina.")
+        elif choice.lower() == 'a':
+            if current_page > 0:
+                current_page -= 1
+            else:
+                messagebox.showinfo("Primera Pagina", "Ya estas en la primera pagina.")
+        else:
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(pages[current_page]):
+                    selected_product = pages[current_page][choice_idx]
+                    break
+                else:
+                    messagebox.showwarning("Seleccion Invalida", "Numero fuera de rango. Intente de nuevo.")
+            except ValueError:
+                messagebox.showwarning("Seleccion Invalida", "Entrada invalida. Intente de nuevo.")
+    #prompt the user for the percentage of discount to apply
+    percentage_str = simpledialog.askstring("Descuento", "Ingrese el porcentaje de descuento aplicar (sin el simbolo %):", initialvalue="10")
+    if percentage_str is None or percentage_str == '':
+        return shoppingCart  # No discount applied, return original cart
+
+    try:
+        percentage = int(percentage_str)
+    except ValueError:
+        messagebox.showwarning("Descuento Invalido", "El porcentaje debe ser un numero entero.")
+        return shoppingCart  # Invalid percentage, return original cart
+
+    if percentage <= 0:
+        messagebox.showwarning("Descuento Invalido", "El porcentaje debe ser mayor que cero.")
+        return shoppingCart  # Non-positive percentage, return original cart
+
+    if percentage >= 100:
+        messagebox.showwarning("Descuento Invalido", "El porcentaje debe ser menor que 100.")
+        return shoppingCart  # Percentage exceeds or equals 100, return original cart
+
+    # Apply the percentage discount to the selected product
+    selected_product.setPrice(price_to_int(selected_product.getPrice()) * (1 - percentage / 100))
+    return shoppingCart
