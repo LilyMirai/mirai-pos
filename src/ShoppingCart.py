@@ -31,6 +31,7 @@ def add_custom_product_to_cart(shoppingCart):
     return shoppingCart
 
 def price_to_int(price):
+    price = str(price)
     amount = price.replace("$", "").replace(".", "").replace(",", "")
     return int(amount)
 

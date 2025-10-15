@@ -84,6 +84,8 @@ def menu():
                 continue
 
         elif action == '6': #Aplicar Descuento
+            '''
+            
             #make user choose between percentage or ammount discount, then call for the proper function
             discount_type = simpledialog.askstring("Tipo de Descuento", "Ingrese '1' para descuento porcentual o '2' para descuento en monto fijo:")
             if discount_type == '1':
@@ -93,6 +95,11 @@ def menu():
             else:
                 messagebox.showwarning("Tipo de Descuento Invalido", "Debe ingresar '1' o '2'.")
                 continue
+
+            '''
+
+            add_ammount_discount_to_cart(shoppingCart)
+            
 
         elif action == '8': #Ver Ventas
             return_sales(sales)
