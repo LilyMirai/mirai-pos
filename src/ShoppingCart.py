@@ -55,6 +55,7 @@ def buy_shopping_cart(shopping_cart, sales):
             amount = item.getPrice()
             amount = amount.replace("$", "")
             amount = amount.replace(".", "")
+            amount = amount.replace(",", "")
             total += (int(amount))
         else:
             print(f"Warning: Unexpected object type in shopping cart: {type(item)}")
